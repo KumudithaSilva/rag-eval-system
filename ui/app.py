@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_echarts import JsCode, st_echarts
 
 # -------------------------------------Mongo DB------------------------------------------
 from local_mongo import get_collection, fetch_collation, insert_data
@@ -81,6 +82,8 @@ with st.sidebar:
 
 col1, col2, col3, col4 = st.columns(4)
 
+
+# --- BASELINE: Retrieval Performance Metrics ---
 with col1:
 
     mrr = st.session_state.dataframe["eval_default_mrr"]
@@ -99,6 +102,7 @@ with col1:
         chart_type="line",
     )
 
+# Recent LLM performance changes
 with col2:
 
     llm_mrr_series = st.session_state.dataframe["eval_llm_mrr"]
@@ -116,6 +120,7 @@ with col2:
         chart_type="area",
     )
 
+# Actual improvement from using LLM
 with col3:
 
     delta_mrr = (
@@ -134,18 +139,170 @@ with col3:
 
 with col4:
 
-    llm_mrr_series = st.session_state.dataframe["eval_llm_mrr"]
-    best = llm_mrr_series.max()
-    st.metric(
-        label="Best LLM MRR",
-        value=f"{best:.4f}",
-        border=True,
-        chart_data=llm_mrr_series,
-        chart_type="line",
-        height="stretch",
-        delta_color="blue",
+    delta_ndcg = (
+        st.session_state.dataframe["eval_llm_ndcg"]
+        - st.session_state.dataframe["eval_default_ndgc"]
     )
 
-if st.session_state.dataframe is not None:
-    st.subheader("Data Preview")
-    st.dataframe(st.session_state.dataframe)
+    st.metric(
+        label="Δ NDCG (LLM vs Default)",
+        value=f"{delta_ndcg.iloc[0]:+.4f}",
+        delta=f"{delta_ndcg.iloc[0] - delta_ndcg.iloc[1]:+.4f}",
+        border=True,
+        chart_data=delta_ndcg,
+        chart_type="line",
+    )
+
+
+# --- MODEL EVAL: Default and LLM Based MRR ---
+st.subheader(":material/trending_up: Default and LLM Based Chunking MRR")
+st.caption("Track MRR and NDCG progress with Default chunking and LLM Based chunking.")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    df = st.session_state.dataframe
+
+    # Prepare data for line chart
+    steps = df.index.tolist()
+    eval_llm_mrr = df["eval_llm_mrr"].tolist()
+    eval_default_mrr = df["eval_default_mrr"].tolist()
+
+    option = {
+        "title": {
+            "text": "MRR Comparison",
+            "left": "center",
+            "top": 15,
+            "textStyle": {"fontSize": 22, "fontWeight": "bold"},
+        },
+        "grid": {
+            "left": "5%",  # reduce left margin to push chart left
+            "right": "15%",  # increase right margin
+            "top": "15%",
+            "bottom": "20%",
+        },
+        "toolbox": {
+            "feature": {
+                "saveAsImage": {},
+                "dataView": {"readOnly": True},
+                "restore": {},
+                "magicType": {"type": ["line", "bar"]},  # only one toolbox key
+            }
+        },
+        "tooltip": {
+            "trigger": "axis",
+            "formatter": JsCode(
+                """
+            function(params){
+                // params is an array of series info at this axis point
+                var result = params[0].axisValue + '<br/>';
+                params.forEach(function(item){
+                    result += item.marker + item.seriesName + ': ' + item.data + '<br/>';
+                });
+                return result;
+            }
+            """
+            ),
+        },
+        "legend": {"data": ["LLM Based", "Default"], "bottom": 10},
+        "xAxis": {"type": "category", "data": steps, "name": "Step"},
+        "yAxis": {"type": "value", "name": "MRR"},
+        "series": [
+            {"name": "LLM Based", "type": "line", "data": eval_llm_mrr, "smooth": True},
+            {
+                "name": "Default",
+                "type": "line",
+                "smooth": True,
+                "areaStyle": {"opacity": 0.1},
+                "data": eval_default_mrr,
+            },
+        ],
+    }
+    st_echarts(
+        options=option,
+        height="400px",
+        width="700px",
+        key="trend_mrr",
+        theme="streamlit",
+    )
+
+with col2:
+    df = st.session_state.dataframe
+
+    # Prepare data for line chart
+    steps = df.index.tolist()
+    eval_llm_ndcg = df["eval_llm_ndcg"].tolist()
+    eval_default_ndcg = df["eval_default_ndgc"].tolist()
+
+    option = {
+        "title": {
+            "text": "NDCG Comparison",
+            "left": "center",
+            "top": 15,
+            "textStyle": {"fontSize": 22, "fontWeight": "bold"},
+        },
+        "grid": {
+            "left": "5%",  # reduce left margin to push chart left
+            "right": "15%",  # increase right margin
+            "top": "15%",
+            "bottom": "20%",
+        },
+        "toolbox": {
+            "feature": {
+                "saveAsImage": {},
+                "dataView": {"readOnly": True},
+                "restore": {},
+                "magicType": {"type": ["line", "bar"]},  # only one toolbox key
+            }
+        },
+        "tooltip": {
+            "trigger": "axis",
+            "formatter": JsCode(
+                """
+            function(params){
+                // params is an array of series info at this axis point
+                var result = params[0].axisValue + '<br/>';
+                params.forEach(function(item){
+                    result += item.marker + item.seriesName + ': ' + item.data + '<br/>';
+                });
+                return result;
+            }
+            """
+            ),
+        },
+        "legend": {"data": ["LLM Based", "Default"], "bottom": 10},
+        "xAxis": {"type": "category", "data": steps, "name": "Step"},
+        "yAxis": {"type": "value", "name": "MRR"},
+        "series": [
+            {
+                "name": "LLM Based",
+                "type": "line",
+                "data": eval_llm_ndcg,
+                "smooth": True,
+            },
+            {
+                "name": "Default",
+                "type": "line",
+                "smooth": True,
+                "areaStyle": {"opacity": 0.1},
+                "data": eval_default_ndcg,
+            },
+        ],
+    }
+    st_echarts(
+        options=option,
+        height="400px",
+        width="700px",
+        key="trend_ndgc",
+        theme="streamlit",
+    )
+
+
+# --- MODEL EVAL: Embedding Models and Chunking Type ---
+# st.subheader(":material/trending_up: Best MRR per Embedding Model & Chunk Type")
+# st.caption("Track RAG progress with embedding models and chunking types.")
+
+
+# if st.session_state.dataframe is not None:
+#     st.subheader("Data Preview")
+#     st.dataframe(st.session_state.dataframe)
