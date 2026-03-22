@@ -17,7 +17,7 @@ def get_collection(db_name: str, collection_name: str):
 def insert_data(collection, data):
     try:
         result = collection.insert_one(data)
-        return str(result.inserted_id)  # return ID so UI can use it
+        return str(result.inserted_id)
     except Exception as e:
         print(f"Insert error: {e}")
         return None
@@ -31,9 +31,7 @@ def fetch_collation(collection):
             return pd.DataFrame()  # empty safe return
 
         df = pd.json_normalize(all_docs, sep=".")
-        df = df.drop(
-            columns=["_id", "collection_name", "rag_preprocess"], errors="ignore"
-        )
+        df = df.drop(columns=["_id", "collection_name"], errors="ignore")
 
         return df
 
