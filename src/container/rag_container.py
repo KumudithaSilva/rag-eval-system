@@ -32,15 +32,3 @@ class RagEvalContainer:
             key_provider = MongoUrlProvider(env_loader)
 
         return MongoConnectionService(key_provider)
-
-
-if __name__ == "__main__":
-    import container
-
-    container = RagEvalContainer()
-
-    connection_service = container.create_mongo_connection_service()
-    mongo_client = connection_service.connect()
-
-    if mongo_client:
-        print(mongo_client.fetch_data())
