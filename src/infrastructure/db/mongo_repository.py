@@ -73,26 +73,25 @@ class MongoRepository(IDatabaseRepository):
             print(f"Insert error: {exc}")
             return None
 
-    def fetch_data(self) -> pd.DataFrame:
+    def fetch_data(self) -> list[dict]:
         """
         Retrieve all documents and convert them into a DataFrame.
 
         Returns:
-            pd.DataFrame: DataFrame containing all records. Returns an empty
-            DataFrame if no data is found or an error occurs.
+            list[dict]: List of mongo collection records.
         """
         try:
             self._connect()
             documents = list(self.collection.find())
 
             if not documents:
-                return pd.DataFrame()
+                return []
 
             df = pd.json_normalize(documents, sep=".")
             df = df.drop(columns=["_id", "collection_name"], errors="ignore")
 
-            return df
+            return df.to_dict(orient="records")
 
         except Exception as exc:
             print(f"Fetch error: {exc}")
-            return pd.DataFrame()
+            return []
