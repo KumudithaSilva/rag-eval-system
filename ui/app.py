@@ -1,18 +1,9 @@
 import pandas as pd
+import requests
 import streamlit as st
 from streamlit_echarts import JsCode, st_echarts
 
-# -------------------------------------Mongo DB------------------------------------------
-from local_mongo import get_collection, fetch_collation, insert_data
-
-
-# Cache collection
-@st.cache_resource
-def get_cached_collection(db_name, collection_name):
-    return get_collection(db_name, collection_name)
-
-
-# -------------------------------------------------------------------------------------
+API_URL = "http://127.0.0.1:8000/rag/mongo"
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -67,9 +58,16 @@ with st.sidebar:
     )
 
     # Mongo Collection
-    if collection_name:
-        collection = get_cached_collection("rag_db", collection_name)
-        st.session_state.dataframe = fetch_collation(collection)
+    if collection_name and st.session_state.dataframe is None:
+        try:
+            response = requests.get(API_URL)
+            response.raise_for_status()
+
+            data = response.json().get("response", [])
+
+            st.session_state.dataframe = pd.DataFrame(data)
+        except Exception as e:
+            st.error(f"Failed to load Mongo data: {e}")
 
     # Submit
     st.space("small")
@@ -82,8 +80,6 @@ with st.sidebar:
                 "chunking": {"type": chunking_type, "config": config},
                 "embedding_model": embedding_model,
             }
-            mongo_id = insert_data(collection, st.session_state.document)
-            st.session_state.document["mongo_id"] = mongo_id
             st.json(st.session_state.document)
 
 if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0] >= 2:
