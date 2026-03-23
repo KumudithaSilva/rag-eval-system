@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import pandas as pd
 
 
 class IDatabaseRepository(ABC):
@@ -21,11 +20,11 @@ class IDatabaseRepository(ABC):
         pass
 
     @abstractmethod
-    def fetch_data(self) -> pd.DataFrame:
+    def fetch_data(self) -> list[dict]:
         """
         Fetch all documents from the database.
 
         Returns:
-            pd.DataFrame: DataFrame containing all documents.
+            list[dict]: List of records retrieved from the database
         """
         pass
