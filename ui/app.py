@@ -1,9 +1,12 @@
+import json
+import time
 import pandas as pd
 import requests
 import streamlit as st
 from streamlit_echarts import JsCode, st_echarts
 
 API_URL = "http://127.0.0.1:8000/rag/mongo"
+FILE_UPLOAD = "http://127.0.0.1:8000/rag/user_upload"
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -20,6 +23,7 @@ st.markdown(
 
 # --- Value Holder ---
 config = {}
+placeholder = st.empty()
 
 if "dataframe" not in st.session_state:
     st.session_state.dataframe = None
@@ -74,13 +78,27 @@ with st.sidebar:
     if st.button("Submit"):
         if not collection_name.strip():
             st.error("Collection Name is required")
+        if not uploaded_folder:
+            st.error("Uploading File is required")
         else:
             st.session_state.document = {
                 "collection_name": collection_name,
                 "chunking": {"type": chunking_type, "config": config},
                 "embedding_model": embedding_model,
             }
-            st.json(st.session_state.document)
+            files = {
+                "file": (uploaded_folder.name, uploaded_folder, uploaded_folder.type)
+            }
+            data = {"document": json.dumps(st.session_state.document)}
+
+            response = requests.post(FILE_UPLOAD, files=files, data=data)
+
+            st.space("small")
+
+            placeholder.info(response.json().get("response", ""))
+            time.sleep(5)
+            placeholder.empty()
+
 
 if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0] >= 2:
 
