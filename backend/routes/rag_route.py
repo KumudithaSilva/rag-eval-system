@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+import json
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from container.rag_container import RagEvalContainer
 from dependencies.dependencies import get_mongo_client
@@ -13,6 +15,10 @@ container = RagEvalContainer()
 # --- pydantic  ---
 class MongoDataResponse(BaseModel):
     response: list[dict]
+
+
+class FileUploadResponse(BaseModel):
+    response: str
 
 
 # --- Routes ---
@@ -30,6 +36,25 @@ async def mongo_data(
 
     except Exception as e:
         logger.exception("Error in /rag/mongo")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching response: {str(e)}"
+        )
+
+
+@router.post("/rag/user_upload", response_model=FileUploadResponse)
+async def user_upload(file: UploadFile = File(...), document: str = Form(...)):
+    """
+    Handle file upload and configuration.
+    """
+    logger.info("Received request to /rag/user_upload")
+    try:
+        document_data = json.loads(document)
+        logger.debug(f"Received request json load: {document_data}")
+        return FileUploadResponse(
+            response="File uploaded successfully. Processing has started and may take some time."
+        )
+    except Exception as e:
+        logger.exception("Error in /rag/user_upload")
         raise HTTPException(
             status_code=500, detail=f"Error fetching response: {str(e)}"
         )
