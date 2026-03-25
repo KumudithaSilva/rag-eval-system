@@ -208,3 +208,7 @@ __marimo__/
 
 # ToDo Files
 rag_to_do.todo
+
+# Test Zip and RAR
+*.zip
+*.rar
