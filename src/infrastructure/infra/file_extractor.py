@@ -113,19 +113,3 @@ class FileExtractor(IFileExtractor):
 
         self.logger.info("File extraction to folder completed successfully.")
         return folder
-
-
-if __name__ == "__main__":
-    extractor = FileExtractor()
-
-    test_archive_path = "test.rar"
-
-    try:
-        extracted = extractor.extract_file(test_archive_path)
-        print(f"Extracted {len(extracted)} files into memory.")
-
-        output_folder = extractor.extract_file_to_folder()
-        print(f"Files saved to: {output_folder}")
-
-    except Exception as e:
-        print(f"Error: {e}")
