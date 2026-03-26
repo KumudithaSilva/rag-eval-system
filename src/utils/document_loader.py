@@ -22,8 +22,6 @@ def doc_convert(path: str) -> List:
     pathfiles = glob.glob(os.path.join(path, "*"))
 
     for file_path in pathfiles:
-        doc_type = os.path.basename(file_path)
-        logger.info(f"Processing folder/file: {doc_type}")
 
         loader = DirectoryLoader(
             path=file_path,
@@ -33,10 +31,14 @@ def doc_convert(path: str) -> List:
         )
 
         folder_docs = loader.load()
-        logger.info(f"Loaded {len(folder_docs)} documents from {doc_type}")
-
         for doc in folder_docs:
-            doc.metadata["doc_type"] = doc_type
+            file_path = doc.metadata.get("source")
+            subfolder_name = os.path.basename(os.path.dirname(file_path))
+
+            logger.debug(f"Processing file from: {subfolder_name}")
+
+            doc.metadata["doc_type"] = subfolder_name
             documents.append(doc)
+
     logger.info(f"Total documents loaded: {len(documents)}")
     return documents
