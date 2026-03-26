@@ -212,3 +212,6 @@ rag_to_do.todo
 # Test Zip and RAR
 *.zip
 *.rar
+
+# Dataset
+knowledge-base
