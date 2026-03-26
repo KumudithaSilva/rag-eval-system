@@ -79,7 +79,10 @@ if __name__ == "__main__":
         print(f"Files saved to: {output_folder}")
 
         default_chunking = DefaultChunking(path=output_folder)
-        print(len(default_chunking.chunk()))
+        rag_chunks = default_chunking.chunk()
+
+        print(f" Metadata : {rag_chunks[0].metadata}")
+        print(f" Page_Content : {rag_chunks[0].page_content}")
 
     except Exception as e:
         print(f"Error: {e}")
