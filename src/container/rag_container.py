@@ -2,7 +2,7 @@ from components.mongo_connection import MongoConnectionService
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_env_loader import IEnvLoader
 from infrastructure.infra.mongo_url_provider import MongoUrlProvider
-from infrastructure.infra.dotenv import DotEnvLoader
+from infrastructure.infra.env_loader import DotEnvLoader
 
 
 class RagEvalContainer:
