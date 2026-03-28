@@ -40,7 +40,7 @@ class PromptProvider(IPrompt):
             document (Document): The LangChain source document to be chunked.
 
         Returns:
-            List: The list of llm based chunks.
+            List: The user prompt string.
         """
         doc_data = DocumentData(
             page_content=document.page_content, metadata=document.metadata
