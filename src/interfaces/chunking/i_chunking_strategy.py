@@ -8,12 +8,9 @@ class IChunkingStrategy(ABC):
     """
 
     @abstractmethod
-    def chunk(self, documents: list) -> List:
+    def chunk(self) -> List:
         """
         Split text into chunks.
-
-        Args:
-            documents (list): List of documents.
 
         Returns:
             List: A list containing the chunked documents.
