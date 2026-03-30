@@ -48,7 +48,8 @@ class LLMChunking(IChunkingStrategy):
 # if __name__ == "__main__":
 #     from infrastructure.infra.open_router_provider import OpenRouterProvider
 #     from infrastructure.infra.env_loader import DotEnvLoader
-#     from infrastructure.infra.open_router_client import OpenRouterAIClientWrapper
+#     from infrastructure.llms.open_router_client import OpenRouterAIClientWrapper
+#     from infrastructure.llms.ollma_client import OllamaClientWrapper
 #     from components.prompt_generation import PromptGenerationService
 #     from infrastructure.infra.file_extractor import FileExtractor
 #     from infrastructure.infra.chunking_prompt import PromptProvider
@@ -60,7 +61,9 @@ class LLMChunking(IChunkingStrategy):
 
 #     env_loader = DotEnvLoader()
 #     key_provider = OpenRouterProvider(env_loader=env_loader)
-#     llm_client = OpenRouterAIClientWrapper(key_provider, model="openai/gpt-4o")
+
+#     # llm_client = OpenRouterAIClientWrapper(key_provider, model="openai/gpt-4o")
+#     llm_client = OllamaClientWrapper(model="llama3.2")
 
 #     test_archive_path = "knowledge-base.zip"
 
@@ -72,7 +75,7 @@ class LLMChunking(IChunkingStrategy):
 #         print(f"Files saved to: {output_folder}")
 
 #         documents = doc_convert(output_folder) if output_folder else []
-#         documents = documents[:2]
+#         documents = documents[:1]
 
 #         prompt_generaterate = prompt_generater.generate_batch(documents)
 
