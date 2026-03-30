@@ -1,11 +1,7 @@
 from typing import List
-
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-from infrastructure.infra.file_extractor import FileExtractor
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
 from logs.logger_singleton import Logger
-from utils.document_loader import doc_convert
 
 
 class DefaultChunking(IChunkingStrategy):
