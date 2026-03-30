@@ -41,50 +41,5 @@ class LLMChunking(IChunkingStrategy):
                 messages=message_batch, structured=True
             )
             results.append(response)
-
+        self.logger.debug(f"Generated {results[0]} chunks.")
         return results
-
-
-# if __name__ == "__main__":
-#     from infrastructure.infra.open_router_provider import OpenRouterProvider
-#     from infrastructure.infra.env_loader import DotEnvLoader
-#     from infrastructure.llms.open_router_client import OpenRouterAIClientWrapper
-#     from infrastructure.llms.ollma_client import OllamaClientWrapper
-#     from components.prompt_generation import PromptGenerationService
-#     from infrastructure.infra.file_extractor import FileExtractor
-#     from infrastructure.infra.chunking_prompt import PromptProvider
-#     from utils.document_loader import doc_convert
-
-#     extractor = FileExtractor()
-#     prompt_provider = PromptProvider()
-#     prompt_generater = PromptGenerationService(prompt_provider=prompt_provider)
-
-#     env_loader = DotEnvLoader()
-#     key_provider = OpenRouterProvider(env_loader=env_loader)
-
-#     # llm_client = OpenRouterAIClientWrapper(key_provider, model="openai/gpt-4o")
-#     llm_client = OllamaClientWrapper(model="llama3.2")
-
-#     test_archive_path = "knowledge-base.zip"
-
-#     try:
-#         extracted = extractor.extract_file(test_archive_path)
-#         print(f"Extracted {len(extracted)} files into memory.")
-
-#         output_folder = extractor.extract_file_to_folder()
-#         print(f"Files saved to: {output_folder}")
-
-#         documents = doc_convert(output_folder) if output_folder else []
-#         documents = documents[:1]
-
-#         prompt_generaterate = prompt_generater.generate_batch(documents)
-
-#         LLMChunking_instance = LLMChunking(
-#             messages=prompt_generaterate, llm_client=llm_client
-#         )
-#         chunks = LLMChunking_instance.chunk()
-#         print(f"Received {len(chunks)} chunks from LLM.")
-#         print(chunks[0])
-
-#     except Exception as e:
-#         print(f"Error during file extraction: {e}")
