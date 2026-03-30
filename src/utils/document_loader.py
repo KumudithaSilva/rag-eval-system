@@ -35,8 +35,6 @@ def doc_convert(path: str) -> List:
             file_path = doc.metadata.get("source")
             subfolder_name = os.path.basename(os.path.dirname(file_path))
 
-            logger.debug(f"Processing file from: {subfolder_name}")
-
             doc.metadata["doc_type"] = subfolder_name
             documents.append(doc)
 
