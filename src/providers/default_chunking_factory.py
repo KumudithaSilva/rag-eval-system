@@ -9,7 +9,7 @@ class DefaultChunkingFactory:
     """
 
     def create(self, config: dict) -> IChunkingStrategy:
-        # Extract path
+        # Extract configuration parameters
         path = config.get("path")
 
         # Load documents
@@ -22,28 +22,25 @@ class DefaultChunkingFactory:
         return DefaultChunking(documents=documents, **clean_config)
 
 
-if __name__ == "__main__":
-    from infrastructure.infra.file_extractor import FileExtractor
+# if __name__ == "__main__":
+#     from infrastructure.infra.file_extractor import FileExtractor
 
-    extractor = FileExtractor()
+#     extractor = FileExtractor()
 
-    test_archive_path = "knowledge-base.zip"
+#     test_archive_path = "knowledge-base.zip"
 
-    try:
-        extracted = extractor.extract_file(test_archive_path)
-        print(f"Extracted {len(extracted)} files into memory.")
+#     try:
+#         extracted = extractor.extract_file(test_archive_path)
+#         output_folder = extractor.extract_file_to_folder()
 
-        output_folder = extractor.extract_file_to_folder()
-        print(f"Files saved to: {output_folder}")
+#         config = {"k": 2, "size": 3}
+#         config["path"] = output_folder
 
-        config = {"k": 2, "size": 3}
-        config["path"] = output_folder
-        print(f"Configuration for DefaultChunkingConnection: {config}")
+#         default_connection = DefaultChunkingFactory()
+#         chunks = default_connection.create(config).chunk()
 
-        default_connection = DefaultChunkingFactory()
-        chunks = default_connection.create(config).chunk()
+#         print(f"Generated {len(chunks)} chunks from the documents.")
+#         print(chunks[0])
 
-        print(f"Generated {len(chunks)} chunks from the documents.")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
