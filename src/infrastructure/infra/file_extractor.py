@@ -97,19 +97,24 @@ class FileExtractor(IFileExtractor):
         os.makedirs(folder, exist_ok=True)
         self.logger.info(f"Created rag folder: {folder}")
 
+        file_count = 0
+        folder_count = 0
+
         for file_name, content in self.extracted_files.items():
             file_path = os.path.join(folder, file_name)
 
             if file_name.endswith("/"):
                 # Create directories
                 os.makedirs(file_path, exist_ok=True)
-                self.logger.info(f"Created folder: {file_path}")
+                folder_count += 1
             else:
                 # Ensure parent directories exist
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 with open(file_path, "wb") as f:
                     f.write(content)
-                self.logger.debug(f"Saved file: {file_path}")
+                file_count += 1
 
-        self.logger.info("File extraction to folder completed successfully.")
+        self.logger.info(
+            f"File extraction completed: {file_count} files and {folder_count} folders saved in {folder}."
+        )
         return folder
