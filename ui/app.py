@@ -53,7 +53,16 @@ with st.sidebar:
 
     elif chunking_type == "LLM Chunking":
         config["k"] = st.number_input("K Value", min_value=1, value=3)
-        config["llm_model"] = st.selectbox("LLM Model", ["gpt", "falcon3"])
+        config["llm_model"] = st.selectbox(
+            "LLM Model",
+            [
+                "ollama/llama3.2",
+                "openai/gpt-4o",
+                "openai/gpt-4o-mini",
+                "openai/gpt-4.1-nano",
+                "google/gemini-2.5-pro",
+            ],
+        )
 
     # Embedding Model
     embedding_model = st.selectbox(
