@@ -1,11 +1,12 @@
 from container.factory_container import FactoryContainer
 from infrastructure.chunking.llm_chunking import LLMChunking
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
+from interfaces.infra.i_chunking_factory import IChunkingFactory
 from interfaces.infra.i_factory_container import IFactoryContainer
 from utils.document_loader import doc_convert
 
 
-class LLMChunkingFactory:
+class LLMChunkingFactory(IChunkingFactory):
     """
     Factory responsible for creating LLMChunking instances.
     """
@@ -15,10 +16,11 @@ class LLMChunkingFactory:
             factory_container or FactoryContainer()
         )
 
-    def create(self, config: dict) -> IChunkingStrategy:
+    def create(self, config: dict, path: str) -> IChunkingStrategy:
+        # Add path for document loading
+        path = path
         # Extract configuration parameters
-        path = config.get("path")
-        model = config.get("model")
+        model = config.get("llm_model")
 
         # Load documents
         documents = doc_convert(path) if path else []
@@ -34,27 +36,3 @@ class LLMChunkingFactory:
 
         # Create strategy
         return LLMChunking(messages=prompts, llm_client=llm_client)
-
-
-# if __name__ == "__main__":
-#     from infrastructure.infra.file_extractor import FileExtractor
-
-#     extractor = FileExtractor()
-
-#     test_archive_path = "knowledge-base.zip"
-
-#     try:
-#         extracted = extractor.extract_file(test_archive_path)
-#         output_folder = extractor.extract_file_to_folder()
-
-#         config = {"model": "llama3.2"}
-#         config["path"] = output_folder
-
-#         llm_connection = LLMChunkingFactory()
-#         chunks = llm_connection.create(config).chunk()
-
-#         print(f"Generated {len(chunks)} chunks from the documents.")
-#         print(chunks[0])
-
-#     except Exception as e:
-#         print(f"An error occurred: {e}")
