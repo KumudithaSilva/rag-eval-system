@@ -46,3 +46,19 @@ class PromptGenerationService(IPromptGenereateService):
             {"role": "user", "content": self.prompt_provider.user_prompt(document)},
         ]
         return self.chat_messages
+
+    def generate_batch(self, documents: List[Document]) -> List[List[Dict]]:
+        """
+        Generate prompts for a batch of documents.
+
+        Args:
+            documents (List[Document]): A list of LangChain source documents to be chunked.
+
+        Returns:
+            List[List[Dict]]: A list of chat message batches, where each batch corresponds to a document.
+        """
+        batch_messages = []
+        for document in documents:
+            messages = self.generate(document)
+            batch_messages.append(messages)
+        return batch_messages
