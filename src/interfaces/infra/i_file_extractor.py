@@ -5,7 +5,7 @@ from typing import IO, Dict, Union
 class IFileExtractor(ABC):
 
     @abstractmethod
-    def extract_file(self, path: Union[str, IO[bytes]]) -> Dict[str, bytes]:
+    def extract_file(self, source: Union[str, IO[bytes]]) -> Dict[str, bytes]:
         pass
 
     @abstractmethod
