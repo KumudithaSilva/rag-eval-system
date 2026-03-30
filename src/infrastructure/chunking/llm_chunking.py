@@ -9,36 +9,40 @@ class LLMChunking(IChunkingStrategy):
     Chunk text using a OpenRouter with LLM.
 
     Attributes:
-        chat_messages (List[Dict]): List of formatted chat messages.
+        chat_messages (List[List[Dict]]): A list of chat message batches to be sent to the LLM for chunking.
         llm_client (AIClient): Client interface for interacting with the LLM.
     """
 
-    def __init__(self, message: List[Dict], llm_client=IAIClient, logger=None):
+    def __init__(self, messages: List[List[Dict]], llm_client=IAIClient, logger=None):
         """
         Initialize the LLMChunking strategy.
 
         Args:
-            chat_messages (List[Dict]): List of formatted chat messages.
+            messages (List[List[Dict]]): A list of message batches.
             llm_client (AIClient): Client used to communicate with the LLM.
             logger (Logger, optional): A logger instance. If None, a default
                 logger is created using the class name.
         """
-        self.chat_messages: List[Dict] = message
+        self.chat_messages: List[List[Dict]] = messages
         self.llm_client = llm_client
         self.logger = logger or Logger(self.__class__.__name__)
 
     def chunk(self) -> List:
         """
-        Chunk the given text using the LLM.
+        Chunk the given text using the LLM for each message batch.
 
         Returns:
-            List: List of chunked documents.
+            List: A list of responses from the LLM, one per message batch.
         """
-        message = self.chat_messages
-        text_splitter = self.llm_client.chat_completions_create(
-            messages=message, structured=True
-        )
-        return text_splitter
+        results = []
+
+        for message_batch in self.chat_messages:
+            response = self.llm_client.chat_completions_create(
+                messages=message_batch, structured=True
+            )
+            results.append(response)
+
+        return results
 
 
 # if __name__ == "__main__":
@@ -68,16 +72,16 @@ class LLMChunking(IChunkingStrategy):
 #         print(f"Files saved to: {output_folder}")
 
 #         documents = doc_convert(output_folder) if output_folder else []
-#         test_document = documents[0]
+#         documents = documents[:2]
 
-#         prompt_generaterate = prompt_generater.generate(test_document)
+#         prompt_generaterate = prompt_generater.generate_batch(documents)
 
 #         LLMChunking_instance = LLMChunking(
-#             message=prompt_generaterate, llm_client=llm_client
+#             messages=prompt_generaterate, llm_client=llm_client
 #         )
-
 #         chunks = LLMChunking_instance.chunk()
-#         print(chunks)
+#         print(f"Received {len(chunks)} chunks from LLM.")
+#         print(chunks[0])
 
 #     except Exception as e:
 #         print(f"Error during file extraction: {e}")
