@@ -48,7 +48,17 @@ async def user_upload(file: UploadFile = File(...), document: str = Form(...)):
     """
     logger.info("Received request to /rag/user_upload")
     try:
+
+        knowledge_base = container.knowledge_base_service()
+        knowledge_base_path = knowledge_base.generate(source=file.file)
+
         document_data = json.loads(document)
+
+        pipeline = container.create_pipeline(
+            document_config=document_data, path=knowledge_base_path
+        )
+        pipeline.process()
+
         logger.debug(f"Received request json load: {document_data}")
         return FileUploadResponse(
             response="File uploaded successfully. Processing has started and may take some time."
