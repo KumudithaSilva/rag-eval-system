@@ -1,6 +1,7 @@
 from components.chat_connection import ChatConnectionService
 from infrastructure.infra.chunking_prompt import PromptProvider
 from infrastructure.infra.open_router_provider import OpenRouterProvider
+from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
 from interfaces.chat.i_oneshot_prompt import IPrompt
 from interfaces.chat.i_prompt_generation import IPromptGenereateService
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
@@ -59,3 +60,24 @@ class FactoryContainer(IFactoryContainer):
 
         if prompt_generator is None:
             return PromptGenerationService(prompt_provider)
+
+    def create_key_provider(
+        self,
+        env_loader: IEnvLoader | None = None,
+        key_provider: IApiKeyProvider | None = None,
+    ):
+        """
+        Create and return an OpenAI keyprovider service.
+
+        Args:
+            env_loader (IEnvLoader, optional): Environment loader.
+            key_provider (IApiKeyProvider, optional): API key provider.
+
+        Returns:
+            An instance of OpenAIApiKeyProvider.
+        """
+        if env_loader is None:
+            env_loader = DotEnvLoader()
+
+        if key_provider is None:
+            return OpenAIApiKeyProvider(env_loader)
