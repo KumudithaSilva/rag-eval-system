@@ -46,7 +46,7 @@ with st.sidebar:
     # Chunking Type
     chunking_type = st.selectbox("Chunking Type", ["Default Chunking", "LLM Chunking"])
 
-    # Conditional UI
+    # Conditional UI for chunking
     if chunking_type == "Default Chunking":
         config["k"] = st.number_input("K Value", min_value=1, value=3)
         config["size"] = st.number_input("Chunk Size", min_value=1, value=8)
@@ -64,11 +64,21 @@ with st.sidebar:
             ],
         )
 
-    # Embedding Model
-    embedding_model = st.selectbox(
-        "Embedding Model",
-        ["all-MiniLM-L6-v2", "text-embedding-3-small", "text-embedding-3-large"],
-    )
+    # Embedding Provider
+    embedding_provider = st.selectbox("Embedding Provider", ["HuggingFace", "OpenAI"])
+
+    # Conditional UI for embedding provider
+    if embedding_provider == "HuggingFace":
+        config["emb_model_name"] = st.selectbox(
+            "Embedding Model",
+            ["all-MiniLM-L6-v2", "all-MiniLM-L12-v2", "all-distilroberta-v1"],
+        )
+
+    elif embedding_provider == "OpenAI":
+        config["emb_model_name"] = st.selectbox(
+            "Embedding Model",
+            ["text-embedding-3-small", "text-embedding-3-large"],
+        )
 
     # Mongo Collection
     if collection_name and st.session_state.dataframe is None:
@@ -93,7 +103,7 @@ with st.sidebar:
             st.session_state.document = {
                 "collection_name": collection_name,
                 "chunking": {"type": chunking_type, "config": config},
-                "embedding_model": embedding_model,
+                "embedding": {"type": embedding_provider, "config": config},
             }
             files = {
                 "file": (uploaded_folder.name, uploaded_folder, uploaded_folder.type)
