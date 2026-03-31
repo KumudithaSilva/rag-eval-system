@@ -2,6 +2,7 @@ from components.knowledge_base_generation import KnowledgeBaseGenerationService
 from components.mongo_connection import MongoConnectionService
 from components.rag_pipeline import RAGPipeline
 from factories.chunking_factory import ChunkingFactory
+from factories.embedding_factory import EmbeddingFactory
 from infrastructure.infra.file_extractor import FileExtractor
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_env_loader import IEnvLoader
@@ -66,5 +67,6 @@ class RagEvalContainer:
         """
 
         chunking = ChunkingFactory.create(document_config["chunking"], path)
+        embeddings = EmbeddingFactory.create(document_config["embedding"])
 
-        return RAGPipeline(chunking)
+        return RAGPipeline(chunking, embeddings)
