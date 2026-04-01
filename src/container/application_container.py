@@ -4,11 +4,15 @@ from infrastructure.infra.chunking_prompt import PromptProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from infrastructure.infra.open_router_provider import OpenRouterProvider
 from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
+from interfaces.embedding.i_embedding import IEmbeddingModel
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_chunking_factory import IChunkingFactory
 from providers.default_chunking_factory import DefaultChunkingFactory
+from providers.huggingface_emb_factory import HuggingFaceEmbeddingFactory
 from providers.llm_chunking_factory import LLMChunkingFactory
+from providers.openai_emb_factory import OpenAIEmbeddingFactory
 from registry.chunking_registry import FactoryRegistry
+from registry.embedding_registry import EmbeddingFactoryRegistry
 from utils.document_loader import doc_convert
 
 
@@ -21,6 +25,7 @@ class ApplicationContainer:
         - prompt_provider: Service to provide prompts for chunking.
         - prompt_service: Service to generate prompts using the provider.
         - factory_registry: Registry to manage chunking factories.
+        - embedding_factory_registry: Registry to manage embedding factories.
     """
 
     def __init__(self):
@@ -31,7 +36,9 @@ class ApplicationContainer:
         self.prompt_provider = PromptProvider()
         self.prompt_service = PromptGenerationService(self.prompt_provider)
         self.factory_registry = FactoryRegistry()
+        self.embedding_factory_registry = EmbeddingFactoryRegistry()
         self._register_chunking_factories()
+        self._register_embedding_factories()
 
     def _register_chunking_factories(self):
         """
@@ -42,6 +49,16 @@ class ApplicationContainer:
 
         self.factory_registry.register("LLM Chunking", llm_factory)
         self.factory_registry.register("Default Chunking", default_factory)
+
+    def _register_embedding_factories(self):
+        """
+        Register all embedding factories in the factory registry at application startup.
+        """
+        huggingface_emb_factory = self.create_huggingface_embedding_factory()
+        openai_emb_factory = self.create_openai_embedding_factory()
+
+        self.embedding_factory_registry.register("HuggingFace", huggingface_emb_factory)
+        self.embedding_factory_registry.register("OpenAI", openai_emb_factory)
 
     def create_chat_connection_service(self) -> ChatConnectionService:
         """
@@ -86,6 +103,17 @@ class ApplicationContainer:
         """
         self.factory_registry.register(chunk_type, factory)
 
+    def register_embedding_factory(self, emb_type: str, factory: IEmbeddingModel):
+        """
+        Register a embedding factory in the factory registry.
+
+        Args:
+            emb_type (str): The type of embedding.
+            factory (IEmbeddingModel): The factory instance to register.
+
+        """
+        self.embedding_factory_registry.register(emb_type, factory)
+
     def create_llm_chunking_factory(self) -> LLMChunkingFactory:
         """
         Create and return an instance of LLMChunkingFactory with the necessary services.
@@ -108,6 +136,25 @@ class ApplicationContainer:
         """
         return DefaultChunkingFactory()
 
+    def create_openai_embedding_factory(self) -> OpenAIEmbeddingFactory:
+        """
+        Create and return an instance of OpenAIEmbeddingFactory.
+
+        Returns:
+            OpenAIEmbeddingFactory: An instance of the OpenAI embedding factory.
+        """
+        key_provider = self.openai_key_provider()
+        return OpenAIEmbeddingFactory(key_provider)
+
+    def create_huggingface_embedding_factory(self) -> HuggingFaceEmbeddingFactory:
+        """
+        Create and return an instance of HuggingFaceEmbeddingFactory.
+
+        Returns:
+            HuggingFaceEmbeddingFactory: An instance of the HuggingFace embedding factory.
+        """
+        return HuggingFaceEmbeddingFactory()
+
     def get_factory_registry(self) -> FactoryRegistry:
         """
         Get the factory registry instance.
@@ -116,3 +163,12 @@ class ApplicationContainer:
             FactoryRegistry: The factory registry instance.
         """
         return self.factory_registry
+
+    def get_embedding_factory_registry(self) -> EmbeddingFactoryRegistry:
+        """
+        Get the embedding factory registry instance.
+
+        Returns:
+            EmbeddingFactoryRegistry: The embedding factory registry instance.
+        """
+        return self.embedding_factory_registry
