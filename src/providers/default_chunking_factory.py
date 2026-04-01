@@ -9,17 +9,10 @@ class DefaultChunkingFactory(IChunkingFactory):
     Factory responsible for creating DefaultChunking instances.
     """
 
-    def create(self, config: dict, path: str) -> IChunkingStrategy:
-        # Add path for document loading
-        path = path
+    def create(self, config: dict, documents: list) -> IChunkingStrategy:
         # Extract configuration parameters
         k = config.get("k")
         size = config.get("size")
-
-        # Validate required parameters
-
-        # Load documents
-        documents = doc_convert(path) if path else []
 
         # Create strategy
         return DefaultChunking(documents=documents, k=k, size=size)
