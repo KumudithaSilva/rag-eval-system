@@ -1,15 +1,12 @@
 import json
-
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
-from container.rag_container import RagEvalContainer
-from dependencies.dependencies import get_mongo_client
+from dependencies.dependencies import get_mongo_client, get_rag_container
 from logs.logger_singleton import Logger
 
 logger = Logger(name="fastapi-routes")
 
 router = APIRouter()
-container = RagEvalContainer()
 
 
 # --- pydantic  ---
@@ -42,7 +39,11 @@ async def mongo_data(
 
 
 @router.post("/rag/user_upload", response_model=FileUploadResponse)
-async def user_upload(file: UploadFile = File(...), document: str = Form(...)):
+async def user_upload(
+    container=Depends(get_rag_container),
+    file: UploadFile = File(...),
+    document: str = Form(...),
+):
     """
     Handle file upload and configuration.
     """
