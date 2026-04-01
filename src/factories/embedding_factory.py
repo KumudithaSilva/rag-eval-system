@@ -1,18 +1,16 @@
 from interfaces.embedding.i_embedding import IEmbeddingModel
-from registry.embedding_registry import EMBEDDING_REGISTRY
+from registry.embedding_registry import EmbeddingFactoryRegistry
 
 
 class EmbeddingFactory:
-    """Create embedding model instances."""
+    """Create dynamic embedding model instances."""
 
-    @staticmethod
-    def create(embedding_data: dict) -> IEmbeddingModel:
+    def __init__(self, registry: EmbeddingFactoryRegistry):
+        self.registry = registry
+
+    def create(self, embedding_data: dict) -> IEmbeddingModel:
         embedding_type = embedding_data.get("type")
         config = embedding_data.get("config", {})
 
-        factory = EMBEDDING_REGISTRY.get(embedding_type)
-
-        if not factory:
-            raise ValueError(f"Unsupported embedding type: {embedding_type}")
-
+        factory = self.registry.get(embedding_type)
         return factory.create(config)
