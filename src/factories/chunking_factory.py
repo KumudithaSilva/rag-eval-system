@@ -1,18 +1,16 @@
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
-from registry.chunking_registry import CHUNKING_REGISTRY
+from registry.chunking_registry import FactoryRegistry
 
 
 class ChunkingFactory:
-    """Create chunking strategy instances."""
+    """Dynamic chunking strategy creation using a registry."""
 
-    @staticmethod
-    def create(chunking_data: dict, path: str) -> IChunkingStrategy:
+    def __init__(self, registry: FactoryRegistry):
+        self.registry = registry
+
+    def create(self, chunking_data: dict, documents: list) -> IChunkingStrategy:
         chunk_type = chunking_data.get("type")
         config = chunking_data.get("config", {})
 
-        factory = CHUNKING_REGISTRY.get(chunk_type)
-
-        if not factory:
-            raise ValueError(f"Unsupported chunking type: {chunk_type}")
-
-        return factory.create(config, path)
+        factory = self.registry.get(chunk_type)
+        return factory.create(config, documents)
