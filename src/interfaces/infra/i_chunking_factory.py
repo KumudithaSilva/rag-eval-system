@@ -8,12 +8,12 @@ class IChunkingFactory(ABC):
 
     Args:
         config (dict): A dictionary containing the configuration for the chunking strategy.
-        path (str): The path to the data that needs to be chunked.
+        documents (list): A list of documents to be chunked.
 
     Returns:
         IChunkingStrategy: An instance of a class that implements the IChunkingStrategy interface
     """
 
     @abstractmethod
-    def create(self, config: dict, path: str) -> IChunkingStrategy:
+    def create(self, config: dict, documents: list) -> IChunkingStrategy:
         pass
