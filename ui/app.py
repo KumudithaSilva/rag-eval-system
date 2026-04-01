@@ -56,7 +56,7 @@ with st.sidebar:
         config["llm_model"] = st.selectbox(
             "LLM Model",
             [
-                "ollama/llama3.2",
+                "llama3.2",
                 "openai/gpt-4o",
                 "openai/gpt-4o-mini",
                 "openai/gpt-4.1-nano",
