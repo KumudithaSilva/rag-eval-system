@@ -25,6 +25,9 @@ class RagEvalContainer:
         self.chunking_factory = ChunkingFactory(
             self.app_container.get_factory_registry()
         )
+        self.embedding_factory = EmbeddingFactory(
+            self.app_container.get_embedding_factory_registry()
+        )
 
     def create_mongo_connection_service(
         self,
@@ -78,6 +81,6 @@ class RagEvalContainer:
         documents = self.app_container.doc_service(path)
 
         chunking = self.chunking_factory.create(document_config["chunking"], documents)
-        embeddings = EmbeddingFactory.create(document_config["embedding"])
+        embeddings = self.embedding_factory.create(document_config["embedding"])
 
         return RAGPipeline(chunking, embeddings)
