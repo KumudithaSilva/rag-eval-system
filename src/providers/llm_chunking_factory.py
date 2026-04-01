@@ -1,5 +1,7 @@
 from container.factory_container import FactoryContainer
 from infrastructure.chunking.llm_chunking import LLMChunking
+from interfaces.chat.i_chatbot_connection import IChatConnection
+from interfaces.chat.i_prompt_generation import IPromptGenereateService
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
 from interfaces.infra.i_chunking_factory import IChunkingFactory
 from interfaces.infra.i_factory_container import IFactoryContainer
@@ -8,31 +10,26 @@ from utils.document_loader import doc_convert
 
 class LLMChunkingFactory(IChunkingFactory):
     """
-    Factory responsible for creating LLMChunking instances.
+    Factory for creating LLMChunking strategy instances.
     """
 
-    def __init__(self, factory_container: IFactoryContainer | None = None):
-        self.factory_container: IFactoryContainer = (
-            factory_container or FactoryContainer()
-        )
+    def __init__(
+        self,
+        prompt_service: IPromptGenereateService,
+        llm_client: IChatConnection,
+    ):
+        self.prompt_service = prompt_service
+        self.llm_client = llm_client
 
-    def create(self, config: dict, path: str) -> IChunkingStrategy:
-        # Add path for document loading
-        path = path
-        # Extract configuration parameters
-        model = config.get("llm_model")
+    def create(self, config: dict, documents: list) -> IChunkingStrategy:
+        """
+        Create LLMChunking using preloaded documents.
+        """
+        # Preprocess documents and generate prompts
+        prompts = self.prompt_service.generate_batch(documents)
 
-        # Load documents
-        documents = doc_convert(path) if path else []
-        documents = documents[:1]
+        # Connect LLM client
+        llm_client = self.llm_client.connect(model=config.get("llm_model"))
 
-        # List of prompts
-        prompts_service = self.factory_container.create_prompt_generation_service()
-        prompts = prompts_service.generate_batch(documents)
-
-        # LLM Client
-        llm_client_service = self.factory_container.create_llm_connection_service()
-        llm_client = llm_client_service.connect(model=model)
-
-        # Create strategy
+        # Return strategy instance
         return LLMChunking(messages=prompts, llm_client=llm_client)
