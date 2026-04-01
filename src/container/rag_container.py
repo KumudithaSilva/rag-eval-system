@@ -1,6 +1,7 @@
 from components.knowledge_base_generation import KnowledgeBaseGenerationService
 from components.mongo_connection import MongoConnectionService
 from components.rag_pipeline import RAGPipeline
+from container.application_container import ApplicationContainer
 from factories.chunking_factory import ChunkingFactory
 from factories.embedding_factory import EmbeddingFactory
 from infrastructure.infra.file_extractor import FileExtractor
@@ -15,6 +16,15 @@ class RagEvalContainer:
     """
     Factory to wire all dependencies and return orchestrator service instances.
     """
+
+    def __init__(self, app_container: ApplicationContainer):
+        """
+        Initialize the RAG evaluation container with the application container."
+        """
+        self.app_container = app_container
+        self.chunking_factory = ChunkingFactory(
+            self.app_container.get_factory_registry()
+        )
 
     def create_mongo_connection_service(
         self,
@@ -65,8 +75,9 @@ class RagEvalContainer:
         Returns:
             RAGPipeline: RAG pipeline instance.
         """
+        documents = self.app_container.doc_service(path)
 
-        chunking = ChunkingFactory.create(document_config["chunking"], path)
+        chunking = self.chunking_factory.create(document_config["chunking"], documents)
         embeddings = EmbeddingFactory.create(document_config["embedding"])
 
         return RAGPipeline(chunking, embeddings)
