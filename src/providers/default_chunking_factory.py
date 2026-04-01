@@ -1,7 +1,6 @@
 from infrastructure.chunking.default_chunking import DefaultChunking
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
 from interfaces.infra.i_chunking_factory import IChunkingFactory
-from utils.document_loader import doc_convert
 
 
 class DefaultChunkingFactory(IChunkingFactory):
