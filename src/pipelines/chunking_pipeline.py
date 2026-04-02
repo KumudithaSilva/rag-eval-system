@@ -1,5 +1,6 @@
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
 from interfaces.infra.i_pipeline import IPipelineStep
+from logs.logger_singleton import Logger
 
 
 class ChunkingStep(IPipelineStep):
@@ -10,14 +11,17 @@ class ChunkingStep(IPipelineStep):
         chunking_strategy (IChunkingStrategy): The strategy to use for chunking documents.
     """
 
-    def __init__(self, chunking_strategy: IChunkingStrategy):
+    def __init__(self, chunking_strategy: IChunkingStrategy, logger=None):
         """
         Initialize ChunkingStep with a chunking strategy.
 
         Args:
             chunking_strategy (IChunkingStrategy): The strategy to use for chunking documents.
+            logger (Logger, optional): A logger instance. If None, a default
+                logger is created using the class name.
         """
         self.chunking = chunking_strategy
+        self.logger = logger or Logger(self.__class__.__name__)
 
     def run(self, data: dict):
         """
@@ -31,4 +35,8 @@ class ChunkingStep(IPipelineStep):
         """
         chunks = self.chunking.chunk()
         data["chunks"] = chunks
+
+        self.logger.info("ChunkingStep completed successfully")
+        self.logger.debug(f"Data Store {data}")
+
         return data
