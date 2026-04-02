@@ -2,6 +2,10 @@ from pydantic import BaseModel, Field
 from typing import List
 
 
+class Result(BaseModel):
+    page_content: str
+
+
 class Chunk(BaseModel):
     headline: str = Field(
         description="A brief heading for this chunk, typically a few words, that is most likely to be surfaced in a query"
