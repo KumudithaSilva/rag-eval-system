@@ -1,5 +1,6 @@
 from components.chat_connection import ChatConnectionService
 from components.prompt_generation import PromptGenerationService
+from infrastructure.db.chroma_vector_store import VectorStoreService
 from infrastructure.infra.chunking_prompt import PromptProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from infrastructure.infra.open_router_provider import OpenRouterProvider
@@ -7,6 +8,7 @@ from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
 from interfaces.embedding.i_embedding import IEmbeddingModel
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_chunking_factory import IChunkingFactory
+from interfaces.infra.i_vector_store import IVectorStoreService
 from providers.default_chunking_factory import DefaultChunkingFactory
 from providers.huggingface_emb_factory import HuggingFaceEmbeddingFactory
 from providers.llm_chunking_factory import LLMChunkingFactory
@@ -172,3 +174,17 @@ class ApplicationContainer:
             EmbeddingFactoryRegistry: The embedding factory registry instance.
         """
         return self.embedding_factory_registry
+
+    def get_vector_store_service(
+        self, embedding_model: IEmbeddingModel
+    ) -> IVectorStoreService:
+        """
+        Create and return an instance of the vector store service with the provided embedding model.
+
+        Args:
+            embedding_model (IEmbeddingModel): The embedding model to use in the vector store service.
+
+        Returns:
+            IVectorStoreService: An instance of the vector store service.
+        """
+        return VectorStoreService(embedding_model)
