@@ -2,6 +2,7 @@ from typing import Dict, List
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
 from interfaces.llm.i_ai_client import IAIClient
 from logs.logger_singleton import Logger
+from utils.result_builder import ResultBuilder
 
 
 class LLMChunking(IChunkingStrategy):
@@ -34,12 +35,12 @@ class LLMChunking(IChunkingStrategy):
         Returns:
             List: A list of responses from the LLM, one per message batch.
         """
-        results = []
-
         for message_batch in self.chat_messages:
             response = self.llm_client.chat_completions_create(
                 messages=message_batch, structured=True
             )
-            results.append(response)
+            chunk_response = response.chunks
+            results = [ResultBuilder.from_chunk(chunk) for chunk in chunk_response]
+
         self.logger.debug(f"Generated {results[0]} chunks.")
         return results
