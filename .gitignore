@@ -215,3 +215,12 @@ rag_to_do.todo
 
 # Dataset
 knowledge-base
+
+
+# Chroma
+vector_store/
+
+# LangChain / embeddings cache
+*.parquet
+*.duckdb
+*.sqlite3
