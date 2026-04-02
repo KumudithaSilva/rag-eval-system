@@ -51,7 +51,6 @@ class VectorStoreService(IVectorStoreService):
         embedding = self._embedding_model.get_model()
 
         texts = [chunk.page_content for chunk in chunks]
-        metadatas = [chunk.metadata for chunk in chunks]
         ids = [str(index) for index in range(len(chunks))]
 
         try:
@@ -64,7 +63,6 @@ class VectorStoreService(IVectorStoreService):
 
             vector_store = Chroma.from_texts(
                 texts=texts,
-                metadatas=metadatas,
                 ids=ids,
                 embedding=embedding,
                 persist_directory=persist_directory,
