@@ -10,6 +10,8 @@ from interfaces.infra.i_env_loader import IEnvLoader
 from infrastructure.infra.mongo_url_provider import MongoUrlProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from interfaces.infra.i_file_extractor import IFileExtractor
+from pipelines.chunking_pipeline import ChunkingStep
+from pipelines.vector_store_pipeline import VectorStoreStep
 
 
 class RagEvalContainer:
@@ -87,4 +89,9 @@ class RagEvalContainer:
             embedding_model
         )
 
-        return RAGPipeline(chunking, vector_store_service)
+        steps = []
+
+        steps.append(ChunkingStep(chunking))
+        steps.append(VectorStoreStep(vector_store_service))
+
+        return RAGPipeline(steps)
