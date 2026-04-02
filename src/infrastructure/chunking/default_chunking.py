@@ -10,25 +10,27 @@ class DefaultChunking(IChunkingStrategy):
 
     Attributes:
         documents (list): Preloaded documents to be chunked.
-        k (int): The overlap size between consecutive chunks.
-        size (int): The size of each chunk.
+        chunk_size (int): The size of each chunk.
+        chunk_overlap (int): The overlap size between chunks.
         _documents (List | None): Internal cache of loaded documents.
     """
 
-    def __init__(self, documents: list, k: int = 3, size: int = 3, logger=None):
+    def __init__(
+        self, documents: list, chunk_size: int, chunk_overlap: int, logger=None
+    ):
         """
         Initialize the DefaultChunking strategy.
 
         Args:
             documents (list): Preloaded documents to be chunked.
-            k (int): The overlap size between chunks.
-            size (int): The size of each chunk.
+            chunk_size (int): The size of each chunk.
+            chunk_overlap (int): The overlap size between chunks.
             logger (Logger, optional): A logger instance. If None, a default
                 logger is created using the class name.
         """
         self.documents = documents
-        self.k = k
-        self.size = size
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
         self.logger = logger or Logger(self.__class__.__name__)
 
     def chunk(self) -> List:
@@ -40,9 +42,11 @@ class DefaultChunking(IChunkingStrategy):
         """
         if not self.documents:
             return []
-        self.logger.debug(f"K: {self.k}, Size: {self.size}")
+        self.logger.debug(
+            f"Chunk Size: {self.chunk_size}, Chunk Overlap: {self.chunk_overlap}"
+        )
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=200
+            chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
         )
         chunks = text_splitter.split_documents(self.documents)
         self.logger.debug(f"Generated {chunks[0]} chunks.")
