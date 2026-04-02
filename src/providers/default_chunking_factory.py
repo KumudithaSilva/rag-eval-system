@@ -10,8 +10,10 @@ class DefaultChunkingFactory(IChunkingFactory):
 
     def create(self, config: dict, documents: list) -> IChunkingStrategy:
         # Extract configuration parameters
-        k = config.get("k")
-        size = config.get("size")
+        chunk_size = config.get("chunk_size")
+        chunk_overlap = config.get("chunk_overlap")
 
         # Create strategy
-        return DefaultChunking(documents=documents, k=k, size=size)
+        return DefaultChunking(
+            documents=documents, chunk_size=chunk_size, chunk_overlap=chunk_overlap
+        )
