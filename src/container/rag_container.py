@@ -81,6 +81,10 @@ class RagEvalContainer:
         documents = self.app_container.doc_service(path)
 
         chunking = self.chunking_factory.create(document_config["chunking"], documents)
-        embeddings = self.embedding_factory.create(document_config["embedding"])
+        embedding_model = self.embedding_factory.create(document_config["embedding"])
 
-        return RAGPipeline(chunking, embeddings)
+        vector_store_service = self.app_container.get_vector_store_service(
+            embedding_model
+        )
+
+        return RAGPipeline(chunking, vector_store_service)
