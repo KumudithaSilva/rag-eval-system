@@ -7,7 +7,7 @@ class IRagPipeline(ABC):
     """
 
     @abstractmethod
-    def process(self) -> dict:
+    def process(self, input_data: dict = None) -> dict:
         """
         Initializing RAG Pipeline.
 
