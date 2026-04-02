@@ -48,11 +48,22 @@ with st.sidebar:
 
     # Conditional UI for chunking
     if chunking_type == "Default Chunking":
-        config["k"] = st.number_input("K Value", min_value=1, value=3)
-        config["size"] = st.number_input("Chunk Size", min_value=1, value=8)
+        config["chunk_size"] = st.number_input(
+            "Chunk Size",
+            min_value=100,
+            value=1000,
+            help="The maximum number of characters per chunk. "
+            "Larger values mean fewer but bigger chunks.",
+        )
+        config["chunk_overlap"] = st.number_input(
+            "Chunk Overlap",
+            min_value=10,
+            value=500,
+            help="The number of characters shared between consecutive chunks. "
+            "Helps preserve context across chunks.",
+        )
 
     elif chunking_type == "LLM Chunking":
-        config["k"] = st.number_input("K Value", min_value=1, value=3)
         config["llm_model"] = st.selectbox(
             "LLM Model",
             [
