@@ -5,9 +5,11 @@ from infrastructure.infra.chunking_prompt import PromptProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from infrastructure.infra.open_router_provider import OpenRouterProvider
 from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
+from infrastructure.retriever.rag_test_retriever import RagRetrivever
 from interfaces.embedding.i_embedding import IEmbeddingModel
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_chunking_factory import IChunkingFactory
+from interfaces.infra.i_retriever import IRetriver
 from interfaces.infra.i_vector_store import IVectorStoreService
 from providers.default_chunking_factory import DefaultChunkingFactory
 from providers.huggingface_emb_factory import HuggingFaceEmbeddingFactory
@@ -16,6 +18,7 @@ from providers.openai_emb_factory import OpenAIEmbeddingFactory
 from registry.chunking_registry import FactoryRegistry
 from registry.embedding_registry import EmbeddingFactoryRegistry
 from utils.document_loader import doc_convert
+from utils.rag_tests import load_tests
 
 
 class ApplicationContainer:
@@ -93,6 +96,16 @@ class ApplicationContainer:
         """
         documents = doc_convert(path) if path else []
         return documents[:1]
+
+    def rag_test_service(self) -> list:
+        """
+        Load documents from the specified path and return a list of documents.
+
+        Returns:
+            list: A list of loaded documents.
+        """
+        documents = load_tests()
+        return documents[:7]
 
     def register_chunking_factory(self, chunk_type: str, factory: IChunkingFactory):
         """
@@ -188,3 +201,15 @@ class ApplicationContainer:
             IVectorStoreService: An instance of the vector store service.
         """
         return VectorStoreService(embedding_model)
+
+    def get_rag_test_retriever(self, vectorstore: IVectorStoreService) -> IRetriver:
+        """
+        Create and return an instance of the rag test retriever.
+
+        Args:
+            vectorstore_service (IVectorStoreService): Service to create and load vector stores.
+
+        Returns:
+            IRetriver: An instance of the rag test retriever service.
+        """
+        return RagRetrivever(vectorstore)
