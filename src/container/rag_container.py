@@ -11,6 +11,7 @@ from infrastructure.infra.mongo_url_provider import MongoUrlProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from interfaces.infra.i_file_extractor import IFileExtractor
 from pipelines.chunking_pipeline import ChunkingStep
+from pipelines.rag_test_retriever_pipeline import RetriverStep
 from pipelines.vector_store_pipeline import VectorStoreStep
 
 
@@ -81,6 +82,7 @@ class RagEvalContainer:
             RAGPipeline: RAG pipeline instance.
         """
         documents = self.app_container.doc_service(path)
+        rag_tests = self.app_container.rag_test_service()
 
         chunking = self.chunking_factory.create(document_config["chunking"], documents)
         embedding_model = self.embedding_factory.create(document_config["embedding"])
@@ -89,9 +91,14 @@ class RagEvalContainer:
             embedding_model
         )
 
+        rag_test_retriver = self.app_container.get_rag_test_retriever(
+            vector_store_service
+        )
+
         steps = []
 
         steps.append(ChunkingStep(chunking))
         steps.append(VectorStoreStep(vector_store_service))
+        steps.append(RetriverStep(rag_test_retriver, rag_tests))
 
         return RAGPipeline(steps)
