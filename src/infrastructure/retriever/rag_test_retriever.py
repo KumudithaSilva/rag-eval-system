@@ -8,7 +8,7 @@ from logs.logger_singleton import Logger
 
 class RagRetrivever(IRetriver):
     """
-    Retriever for fetching relevant context documents using a vector store service.
+    Retriever for fetching relevant context documents.
 
     Attributes:
         _service (IVectorStoreService): Service to create and load vector stores.
@@ -18,7 +18,7 @@ class RagRetrivever(IRetriver):
 
     def __init__(self, vectorstore: IVectorStoreService, logger=None):
         """
-        Initialize the retriever with a vector store service.
+        Initialize the rag retriever with a vector store service.
 
         Args:
             vectorstore_service (IVectorStoreService): Service to create and load vector stores.
