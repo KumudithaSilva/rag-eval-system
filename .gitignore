@@ -224,3 +224,6 @@ vector_store/
 *.parquet
 *.duckdb
 *.sqlite3
+
+# RAG Tests
+tests.jsonl
