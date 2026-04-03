@@ -26,3 +26,20 @@ class IVectorStoreService(ABC):
             Optional[Chroma]: Created vector store or None.
         """
         pass
+
+    @abstractmethod
+    def load(
+        self,
+        persist_directory: str = "vector_store",
+    ) -> Optional[Chroma]:
+        """
+        Load an existing vector store from a persistence directory.
+
+        Args:
+            persist_directory (str, optional): Directory path where the vector
+                store is stored. Defaults to "vector_store".
+
+        Returns:
+            Optional[Chroma]: The loaded vector store.
+        """
+        pass

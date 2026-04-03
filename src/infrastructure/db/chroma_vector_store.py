@@ -77,3 +77,35 @@ class VectorStoreService(IVectorStoreService):
                 f"Failed to create vector store: {exc}",
             )
             raise
+
+    def load(
+        self,
+        persist_directory: str = "vector_store",
+    ) -> Optional[Chroma]:
+        """
+        Load an existing Chroma vector store from disk.
+
+        Args:
+            persist_directory (str, optional): Directory to persist the vector store.
+
+        Returns:
+            Optional[Chroma]: The loaded vector store.
+        """
+        if not os.path.exists(persist_directory):
+            self._logger.warning("Vector store directory does not exist.")
+            return None
+
+        try:
+            embedding = self._embedding_model.get_model()
+
+            vector_store = Chroma(
+                persist_directory=persist_directory,
+                embedding_function=embedding,
+            )
+
+            self._logger.info("Vector store loaded successfully.")
+            return vector_store
+
+        except Exception as exc:
+            self._logger.error(f"Failed to load vector store: {exc}")
+            raise
