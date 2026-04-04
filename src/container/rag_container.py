@@ -11,6 +11,7 @@ from infrastructure.infra.mongo_url_provider import MongoUrlProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from interfaces.infra.i_file_extractor import IFileExtractor
 from pipelines.chunking_pipeline import ChunkingStep
+from pipelines.rag_test_evaluator_pipeline import EvaluatorStep
 from pipelines.rag_test_retriever_pipeline import RetriverStep
 from pipelines.vector_store_pipeline import VectorStoreStep
 
@@ -95,10 +96,12 @@ class RagEvalContainer:
             vector_store_service
         )
 
+        rag_test_evaluator = self.app_container.get_rag_evaluator()
+
         steps = []
 
         steps.append(ChunkingStep(chunking))
         steps.append(VectorStoreStep(vector_store_service))
-        steps.append(RetriverStep(rag_test_retriver, rag_tests))
+        steps.append(EvaluatorStep(rag_test_retriver, rag_tests, rag_test_evaluator))
 
         return RAGPipeline(steps)
