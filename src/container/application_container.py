@@ -1,16 +1,22 @@
+from typing import List
+
 from components.chat_connection import ChatConnectionService
 from components.prompt_generation import PromptGenerationService
 from infrastructure.db.chroma_vector_store import VectorStoreService
+from infrastructure.evaluator.retrieval_evaluator import RetrievalEvaluator
 from infrastructure.infra.chunking_prompt import PromptProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from infrastructure.infra.open_router_provider import OpenRouterProvider
 from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
+from infrastructure.metrics.mrr import MRRMetric
 from infrastructure.retriever.rag_test_retriever import RagRetrivever
 from interfaces.embedding.i_embedding import IEmbeddingModel
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_chunking_factory import IChunkingFactory
+from interfaces.infra.i_evaluator import IEvaluator
 from interfaces.infra.i_retriever import IRetriver
 from interfaces.infra.i_vector_store import IVectorStoreService
+from interfaces.metrics.i_retrieval_metric import IRetrievalMetric
 from providers.default_chunking_factory import DefaultChunkingFactory
 from providers.huggingface_emb_factory import HuggingFaceEmbeddingFactory
 from providers.llm_chunking_factory import LLMChunkingFactory
@@ -106,6 +112,16 @@ class ApplicationContainer:
         """
         documents = load_tests()
         return documents[:7]
+
+    def rag_metrics(self) -> List[IRetrievalMetric]:
+        """
+        Load the RAG evaluation metrices
+
+        Returns:
+            metrics: A list of metrics instances
+        """
+        metrics = [MRRMetric()]
+        return metrics
 
     def register_chunking_factory(self, chunk_type: str, factory: IChunkingFactory):
         """
@@ -213,3 +229,13 @@ class ApplicationContainer:
             IRetriver: An instance of the rag test retriever service.
         """
         return RagRetrivever(vectorstore)
+
+    def get_rag_evaluator(self) -> IEvaluator:
+        """
+        Create and return an instance of the rag test evaluator.
+
+        Returns:
+            IEvaluator: An instance of the rag test evaluator service.
+        """
+        metrics = self.rag_metrics()
+        return RetrievalEvaluator(metrics)
