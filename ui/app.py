@@ -132,12 +132,20 @@ with st.sidebar:
 
 if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0] >= 2:
 
+    df = st.session_state.dataframe
     col1, col2, col3, col4 = st.columns(4)
 
     # --- BASELINE: Retrieval Performance Metrics ---
+
+    # Top MRR and it's type
     with col1:
 
-        mrr = st.session_state.dataframe["eval_default_mrr"]
+        # Top MRR
+        mrr = df["mrr"]
+
+        idx = df["mrr"].idxmax()
+        top_mrr = df.loc[idx, "mrr"]
+        top_chunking_type = df.loc[idx, "chunking.type"]
 
         current = mrr.iloc[-1]
         top_value = mrr.max()
@@ -145,7 +153,7 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
         delta = current - top_value
 
         st.metric(
-            label="Default MRR (Max)",
+            label=f"{top_chunking_type} MRR (Max)",
             value=f"{current:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
@@ -153,61 +161,68 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
             chart_type="line",
         )
 
-    # Recent LLM performance changes
+    # Recent MRR performance changes
     with col2:
 
-        llm_mrr_series = st.session_state.dataframe["eval_llm_mrr"]
-        current = llm_mrr_series.iloc[-1]
-        top_value = llm_mrr_series.max()
+        # MRR Change vs Previous Run
+        mrr = df["mrr"]
+
+        current = mrr.iloc[-1]
+        previous = mrr.iloc[-2]
+
+        delta = current - previous
+
+        st.metric(
+            label="Δ MRR vs Prev",
+            value=f"{current:.4f}",
+            delta=f"{delta:+.4f}",
+            border=True,
+            chart_data=mrr,
+            chart_type="area",
+        )
+
+    # Top NDCG and it's type
+    with col3:
+
+        # Top NDCG
+        ndcg = df["ndcg"]
+
+        idx = df["ndcg"].idxmax()
+        top_ndcg = df.loc[idx, "ndcg"]
+        top_chunking_type = df.loc[idx, "chunking.type"]
+
+        current = ndcg.iloc[-1]
+        top_value = ndcg.max()
 
         delta = current - top_value
 
         st.metric(
-            label="LLM MRR (Max)",
-            value=f"{current:.2f}",
-            delta=f"{delta:+.2f}",
+            label=f"{top_chunking_type} NDCG (Max)",
+            value=f"{current:.4f}",
+            delta=f"{delta:+.4f}",
             border=True,
-            chart_data=llm_mrr_series,
-            chart_type="area",
-        )
-
-    # Actual improvement from using LLM
-    with col3:
-
-        delta_mrr = (
-            st.session_state.dataframe["eval_llm_mrr"]
-            - st.session_state.dataframe["eval_default_mrr"]
-        )
-
-        current = delta_mrr.iloc[-1]
-        previous = delta_mrr.iloc[-2]
-
-        st.metric(
-            label="Δ MRR (LLM vs Default)",
-            value=f"{current:+.4f}",
-            delta=f"{current - previous:+.4f}",
-            border=True,
-            chart_data=delta_mrr,
+            chart_data=ndcg,
             chart_type="line",
         )
 
+    # Recent NDCG performance changes
     with col4:
 
-        delta_ndcg = (
-            st.session_state.dataframe["eval_llm_ndcg"]
-            - st.session_state.dataframe["eval_default_ndgc"]
-        )
+        # NDCG Change vs Previous Run
+        ndcg = df["ndcg"]
 
-        current = delta_mrr.iloc[-1]
-        previous = delta_mrr.iloc[-2]
+        current = ndcg.iloc[-1]
+        previous = ndcg.iloc[-2]
+
+        delta = current - previous
 
         st.metric(
-            label="Δ NDCG (LLM vs Default)",
-            value=f"{current:+.4f}",
-            delta=f"{current - previous:+.4f}",
+            label="Δ NDCG vs Prev",
+            value=f"{current:.4f}",
+            delta=f"{delta:+.4f}",
             border=True,
-            chart_data=delta_ndcg,
-            chart_type="line",
+            chart_data=ndcg,
+            chart_type="area",
         )
 
     # --- MODEL EVAL: Default and LLM Based MRR ---
@@ -219,12 +234,17 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
     col1, col2 = st.columns(2)
 
     with col1:
-        df = st.session_state.dataframe
+
+        filtered_llm_df = df[df["chunking.type"] == "LLM Chunking"]
+        llm_mrr_series = filtered_llm_df["mrr"]
+
+        filtered_default_df = df[df["chunking.type"] == "Default Chunking"]
+        default_mrr_series = filtered_default_df["mrr"]
 
         # Prepare data for line chart
         steps = df.index.tolist()
-        eval_llm_mrr = df["eval_llm_mrr"].tolist()
-        eval_default_mrr = df["eval_default_mrr"].tolist()
+        eval_llm_mrr = llm_mrr_series.tolist()
+        eval_default_mrr = default_mrr_series.tolist()
 
         option = {
             "title": {
@@ -290,12 +310,17 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
         )
 
     with col2:
-        df = st.session_state.dataframe
+
+        filtered_llm_df = df[df["chunking.type"] == "LLM Chunking"]
+        llm_mrr_series = filtered_llm_df["ndcg"]
+
+        filtered_default_df = df[df["chunking.type"] == "Default Chunking"]
+        default_mrr_series = filtered_default_df["ndcg"]
 
         # Prepare data for line chart
         steps = df.index.tolist()
-        eval_llm_ndcg = df["eval_llm_ndcg"].tolist()
-        eval_default_ndcg = df["eval_default_ndgc"].tolist()
+        eval_llm_ndcg = llm_mrr_series.tolist()
+        eval_default_ndcg = default_mrr_series.tolist()
 
         option = {
             "title": {
@@ -370,9 +395,9 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
         df = st.session_state.dataframe
 
         pivot_df = df.pivot_table(
-            index="embedding_model",
+            index="embedding.type",
             columns="chunking.type",
-            values="eval_llm_mrr",
+            values="mrr",
             aggfunc="median",
         )
 
@@ -447,9 +472,9 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
         df = st.session_state.dataframe
 
         pivot_df = df.pivot_table(
-            index="embedding_model",
+            index="embedding.type",
             columns="chunking.type",
-            values="eval_llm_ndcg",
+            values="ndcg",
             aggfunc="median",
         )
 
