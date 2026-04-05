@@ -11,6 +11,7 @@ from infrastructure.infra.mongo_url_provider import MongoUrlProvider
 from infrastructure.infra.env_loader import DotEnvLoader
 from interfaces.infra.i_file_extractor import IFileExtractor
 from pipelines.chunking_pipeline import ChunkingStep
+from pipelines.mongo_storage_pipeline import MongoStoreStep
 from pipelines.rag_test_evaluator_pipeline import EvaluatorStep
 from pipelines.rag_test_retriever_pipeline import RetriverStep
 from pipelines.vector_store_pipeline import VectorStoreStep
@@ -33,28 +34,15 @@ class RagEvalContainer:
             self.app_container.get_embedding_factory_registry()
         )
 
-    def create_mongo_connection_service(
-        self,
-        env_loader: IEnvLoader | None = None,
-        key_provider: IApiKeyProvider | None = None,
-    ):
+    def create_mongo_connection_service(self):
         """
-        Create and return a Mongo connection service.
-
-        Args:
-            env_loader (IEnvLoader, optional): Environment loader.
-            key_provider (IApiKeyProvider, optional): Mongo URL provider.
+        Create and return instance of MongoConnection.
 
         Returns:
-            IMongoConnection: Mongo connection service instance.
+            MongoConnection: Mongo connection service instance.
         """
-        if env_loader is None:
-            env_loader = DotEnvLoader()
-
-        if key_provider is None:
-            key_provider = MongoUrlProvider(env_loader)
-
-        return MongoConnectionService(key_provider)
+        mongo_connection = self.app_container.create_mongo_connection_service()
+        return mongo_connection
 
     def knowledge_base_service(self, file_extractor: IFileExtractor | None = None):
         """
@@ -84,6 +72,7 @@ class RagEvalContainer:
         """
         documents = self.app_container.doc_service(path)
         rag_tests = self.app_container.rag_test_service()
+        config_details = document_config
 
         chunking = self.chunking_factory.create(document_config["chunking"], documents)
         embedding_model = self.embedding_factory.create(document_config["embedding"])
@@ -98,10 +87,14 @@ class RagEvalContainer:
 
         rag_test_evaluator = self.app_container.get_rag_evaluator()
 
+        mongo_connection = self.app_container.create_mongo_connection_service()
+
         steps = []
 
         steps.append(ChunkingStep(chunking))
         steps.append(VectorStoreStep(vector_store_service))
-        steps.append(EvaluatorStep(rag_test_retriver, rag_tests, rag_test_evaluator))
+        steps.append(RetriverStep(rag_test_retriver, rag_tests))
+        steps.append(EvaluatorStep(rag_test_evaluator, rag_tests))
+        steps.append(MongoStoreStep(mongo_connection, config_details))
 
         return RAGPipeline(steps)
