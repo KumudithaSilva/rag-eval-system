@@ -1,4 +1,5 @@
 import json
+from typing import List
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 from dependencies.dependencies import get_mongo_client, get_rag_container
@@ -41,7 +42,7 @@ async def mongo_data(
 @router.post("/rag/user_upload", response_model=FileUploadResponse)
 async def user_upload(
     container=Depends(get_rag_container),
-    file: UploadFile = File(...),
+    file: List[UploadFile] = File(...),
     document: str = Form(...),
 ):
     """
@@ -51,12 +52,20 @@ async def user_upload(
     try:
 
         knowledge_base = container.knowledge_base_service()
-        knowledge_base_path = knowledge_base.generate(source=file.file)
+
+        knowledge_base_path = knowledge_base.generate(
+            source=file[0].file, folder_name=file[0].filename
+        )
+        testset_base_path = knowledge_base.generate(
+            source=file[1].file, folder_name=file[1].filename
+        )
 
         document_data = json.loads(document)
 
         pipeline = container.create_pipeline(
-            document_config=document_data, path=knowledge_base_path
+            document_config=document_data,
+            path=knowledge_base_path,
+            testset_path=testset_base_path,
         )
         pipeline.process()
 
