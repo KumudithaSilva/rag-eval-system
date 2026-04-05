@@ -116,14 +116,17 @@ class ApplicationContainer:
         documents = doc_convert(path) if path else []
         return documents[:1]
 
-    def rag_test_service(self) -> list:
+    def rag_test_service(self, path: str) -> list:
         """
         Load documents from the specified path and return a list of documents.
+
+        Args:
+            path (str): The file path to load documents from.
 
         Returns:
             list: A list of loaded documents.
         """
-        documents = load_tests()
+        documents = load_tests(path) if path else []
         return documents[:7]
 
     def rag_metrics(self) -> List[IRetrievalMetric]:
