@@ -34,7 +34,14 @@ with st.sidebar:
     st.title(":material/filter_alt: Filters")
 
     uploaded_folder = st.file_uploader(
-        "Upload Main Folder",
+        "Upload Knowledge Base",
+        type=["zip", "rar"],
+        accept_multiple_files=False,
+        max_upload_size=50,
+    )
+
+    testtest_folder = st.file_uploader(
+        "Upload Knowledge Base Testset",
         type=["zip", "rar"],
         accept_multiple_files=False,
         max_upload_size=50,
@@ -108,7 +115,7 @@ with st.sidebar:
     if st.button("Submit"):
         if not collection_name.strip():
             st.error("Collection Name is required")
-        if not uploaded_folder:
+        if not uploaded_folder or not testtest_folder:
             st.error("Uploading File is required")
         else:
             st.session_state.document = {
@@ -116,9 +123,11 @@ with st.sidebar:
                 "chunking": {"type": chunking_type, "config": config},
                 "embedding": {"type": embedding_provider, "config": config},
             }
-            files = {
-                "file": (uploaded_folder.name, uploaded_folder, uploaded_folder.type)
-            }
+            files = [
+                ("file", (uploaded_folder.name, uploaded_folder, uploaded_folder.type)),
+                ("file", (testtest_folder.name, testtest_folder, testtest_folder.type)),
+            ]
+
             data = {"document": json.dumps(st.session_state.document)}
 
             response = requests.post(FILE_UPLOAD, files=files, data=data)
