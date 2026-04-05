@@ -59,19 +59,20 @@ class RagEvalContainer:
 
         return KnowledgeBaseGenerationService(file_extractor)
 
-    def create_pipeline(self, document_config: dict, path: str):
+    def create_pipeline(self, document_config: dict, path: str, testset_path: str):
         """
         Create and return a RAG pipeline instance.
 
         Args:
             document_data (dict): Document data containing chunking configuration.
             path (str): Path to the documents.
+            testset_path (str): Path to the rag test documents.
 
         Returns:
             RAGPipeline: RAG pipeline instance.
         """
         documents = self.app_container.doc_service(path)
-        rag_tests = self.app_container.rag_test_service()
+        rag_tests = self.app_container.rag_test_service(testset_path)
         config_details = document_config
 
         chunking = self.chunking_factory.create(document_config["chunking"], documents)
