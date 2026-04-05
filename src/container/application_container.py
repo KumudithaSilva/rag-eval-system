@@ -1,15 +1,18 @@
 from typing import List
 
 from components.chat_connection import ChatConnectionService
+from components.mongo_connection import MongoConnectionService
 from components.prompt_generation import PromptGenerationService
 from infrastructure.db.chroma_vector_store import VectorStoreService
 from infrastructure.evaluator.retrieval_evaluator import RetrievalEvaluator
 from infrastructure.infra.chunking_prompt import PromptProvider
 from infrastructure.infra.env_loader import DotEnvLoader
+from infrastructure.infra.mongo_url_provider import MongoUrlProvider
 from infrastructure.infra.open_router_provider import OpenRouterProvider
 from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
 from infrastructure.metrics.mrr import MRRMetric
 from infrastructure.retriever.rag_test_retriever import RagRetrivever
+from interfaces.db.i_mongo_connection import IMongoConnection
 from interfaces.embedding.i_embedding import IEmbeddingModel
 from interfaces.infra.i_api_key_provider import IApiKeyProvider
 from interfaces.infra.i_chunking_factory import IChunkingFactory
@@ -80,6 +83,16 @@ class ApplicationContainer:
         """
         key_provider = OpenRouterProvider(self.env_loader)
         return ChatConnectionService(key_provider)
+
+    def create_mongo_connection_service(self) -> IMongoConnection:
+        """
+        Create and return an instance of MongoConnection.
+
+        Returns:
+            IMongoConnection: Mongo connection service instance.
+        """
+        key_provider = MongoUrlProvider(self.env_loader)
+        return MongoConnectionService(key_provider)
 
     def openai_key_provider(self) -> IApiKeyProvider:
         """
