@@ -115,7 +115,7 @@ class ApplicationContainer:
             list: A list of loaded documents.
         """
         documents = doc_convert(path) if path else []
-        return documents[:1]
+        return documents
 
     def rag_test_service(self, path: str) -> list:
         """
@@ -128,7 +128,7 @@ class ApplicationContainer:
             list: A list of loaded documents.
         """
         documents = load_tests(path) if path else []
-        return documents[:7]
+        return documents
 
     def rag_metrics(self) -> List[IRetrievalMetric]:
         """
