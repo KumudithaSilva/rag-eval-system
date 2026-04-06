@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 from typing import Dict, List
 from interfaces.chunking.i_chunking_strategy import IChunkingStrategy
 from interfaces.llm.i_ai_client import IAIClient
@@ -7,7 +9,11 @@ from utils.result_builder import ResultBuilder
 
 class LLMChunking(IChunkingStrategy):
     """
-    Chunk text using a OpenRouter with LLM.
+    Chunk text using an LLM with parallel processing.
+
+    Note:
+        Uses threads to process multiple message batches concurrently. Threads
+        share the same LLM client instance, which makes it safe and faster for I/O-bound operations (like LLM API calls).
 
     Attributes:
         chat_messages (List[List[Dict]]): A list of chat message batches to be sent to the LLM for chunking.
@@ -28,19 +34,47 @@ class LLMChunking(IChunkingStrategy):
         self.llm_client = llm_client
         self.logger = logger or Logger(self.__class__.__name__)
 
-    def chunk(self) -> List:
+    def _process_batch(self, batch):
         """
-        Chunk the given text using the LLM for each message batch.
+        Process a single batch of messages using the LLM.
+
+        Args:
+            batch: One batch of messages.
 
         Returns:
-            List: A list of responses from the LLM, one per message batch.
+            List of chunked results from the LLM.
         """
-        for message_batch in self.chat_messages:
-            response = self.llm_client.chat_completions_create(
-                messages=message_batch, structured=True
-            )
-            chunk_response = response.chunks
-            results = [ResultBuilder.from_chunk(chunk) for chunk in chunk_response]
+        response = self.llm_client.chat_completions_create(
+            messages=batch, structured=True
+        )
+        return [ResultBuilder.from_chunk(chunk) for chunk in response.chunks]
 
-        self.logger.debug(f"Generated {results[0]} chunks.")
+    def chunk(self) -> List:
+        """
+        Chunk all message batches using threads.
+
+        Returns:
+            List of all chunked results from all batches.
+        """
+        start_time = time.time()
+        results = []
+
+        # Create a thread pool to process batches concurrently
+        with ThreadPoolExecutor(max_workers=5) as executor:
+
+            # Submit each batch to the thread pool
+            futures = [
+                executor.submit(self._process_batch, batch)
+                for batch in self.chat_messages
+            ]
+
+            # As each thread completes, gather its results
+            for future in as_completed(futures):
+                results.extend(future.result())
+
+        end_time = time.time()
+        self.logger.info(
+            f"ThreadPool chunking took {end_time - start_time:.2f} seconds"
+        )
+        self.logger.debug(f"Generated {len(results)} chunks.")
         return results
