@@ -58,60 +58,16 @@ class RetrievalEvaluator(IEvaluator):
                 doc_texts = [doc.page_content for doc in retrieved_docs]
 
                 score = metric.compute_for_question(question.keywords, doc_texts)
+
                 total_score += score
                 count += 1
 
-                self.logger.info(f"Keywords: {question.keywords} | Score: {score:.4f}")
+                self.logger.info(
+                    f"Total score for Question: {count} | Metric: '{metric.name}': {score:.4f}\n"
+                )
 
                 avg_score = total_score / count if count > 0 else 0.0
                 results[metric.name] = avg_score
 
-                self.logger.info(
-                    f"Average score for metric '{metric.name}': {avg_score:.4f}\n"
-                )
-
         self.dataset_results = results
         return self.dataset_results
-
-
-if __name__ == "__main__":
-    from infrastructure.metrics.mrr import MRRMetric
-
-    test_questions = [
-        TestQuestion(
-            question="What is AI?",
-            keywords=["AI"],
-            reference_answer="Artificial Intelligence",
-            category="Technology",
-        ),
-        TestQuestion(
-            question="Define ML.",
-            keywords=["ML"],
-            reference_answer="Machine Learning",
-            category="Technology",
-        ),
-    ]
-
-    retriver_answers = [
-        [
-            Result(
-                page_content="Artificial Intelligence is the study of machines.",
-                metadata={},
-            ),
-            Result(page_content="AI stands for Artificial Intelligence.", metadata={}),
-        ],
-        [
-            Result(
-                page_content="Machine Learning (ML) allows computers to learn from data.",
-                metadata={},
-            ),
-            Result(page_content="ML is part of AI.", metadata={}),
-        ],
-    ]
-
-    metrics = [MRRMetric()]
-
-    evaluator = RetrievalEvaluator(metrics)
-    results = evaluator.evaluate(test_questions, retriver_answers)
-
-    print("\nFinal Results:", results)
