@@ -10,8 +10,10 @@ from infrastructure.infra.env_loader import DotEnvLoader
 from infrastructure.infra.mongo_url_provider import MongoUrlProvider
 from infrastructure.infra.open_router_provider import OpenRouterProvider
 from infrastructure.infra.openai_provider import OpenAIApiKeyProvider
+from infrastructure.metrics.hitk import HitAtKMetric
 from infrastructure.metrics.mrr import MRRMetric
 from infrastructure.metrics.ndcg import NDCGMetric
+from infrastructure.metrics.recall import RecallMetric
 from infrastructure.retriever.rag_test_retriever import RagRetrivever
 from interfaces.db.i_mongo_connection import IMongoConnection
 from interfaces.embedding.i_embedding import IEmbeddingModel
@@ -137,7 +139,7 @@ class ApplicationContainer:
         Returns:
             metrics: A list of metrics instances
         """
-        metrics = [MRRMetric(), NDCGMetric()]
+        metrics = [MRRMetric(), NDCGMetric(), RecallMetric(), HitAtKMetric()]
         return metrics
 
     def register_chunking_factory(self, chunk_type: str, factory: IChunkingFactory):
