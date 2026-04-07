@@ -5,7 +5,8 @@ from interfaces.metrics.i_retrieval_metric import IRetrievalMetric
 
 
 class NDCGMetric(IRetrievalMetric):
-    """Normalized Discounted Cumulative Gain.
+    """
+    Normalized Discounted Cumulative Gain.
 
      - This metric evaluates considering both the relevance of each document and its position in the ranking.
      - Higher relevance documents appearing earlier in the list contribute more to the score.

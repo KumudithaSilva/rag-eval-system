@@ -3,7 +3,9 @@ from interfaces.metrics.i_retrieval_metric import IRetrievalMetric
 
 
 class MRRMetric(IRetrievalMetric):
-    """Mean Reciprocal Rank for a single query."""
+    """
+    Mean Reciprocal Rank for a single query.
+    """
 
     @property
     def name(self):
