@@ -146,92 +146,81 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
 
     # --- BASELINE: Retrieval Performance Metrics ---
 
-    # Top MRR and it's type
     with col1:
-
-        # Top MRR
+        # This metric clearly represents the latest MRR and how it compares to the historical max
         mrr = df["mrr"]
 
-        idx = df["mrr"].idxmax()
-        top_mrr = df.loc[idx, "mrr"]
-        top_chunking_type = df.loc[idx, "chunking.type"]
+        latest_chunking_type = df["chunking.type"].iloc[-1]
+        latest_mrr = df["mrr"].iloc[-1]
+        top_mrr = df["mrr"].max()
 
-        current = mrr.iloc[-1]
-        top_value = mrr.max()
-
-        delta = current - top_value
+        delta = latest_mrr - top_mrr
 
         st.metric(
-            label=f"{top_chunking_type} MRR (Max)",
-            value=f"{current:.4f}",
+            label=f"{latest_chunking_type} MRR (Latest)",
+            value=f"{latest_mrr:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
             chart_data=mrr,
             chart_type="line",
         )
 
-    # Recent MRR performance changes
     with col2:
-
-        # MRR Change vs Previous Run
-        mrr = df["mrr"]
-
-        current = mrr.iloc[-1]
-        previous = mrr.iloc[-2]
-
-        delta = current - previous
-
-        st.metric(
-            label="Δ MRR vs Prev",
-            value=f"{current:.4f}",
-            delta=f"{delta:+.4f}",
-            border=True,
-            chart_data=mrr,
-            chart_type="area",
-        )
-
-    # Top NDCG and it's type
-    with col3:
-
-        # Top NDCG
+        # This metric clearly represents the latest NDCG and how it compares to the historical max
         ndcg = df["ndcg"]
 
-        idx = df["ndcg"].idxmax()
-        top_ndcg = df.loc[idx, "ndcg"]
-        top_chunking_type = df.loc[idx, "chunking.type"]
+        latest_chunking_type = df["chunking.type"].iloc[-1]
+        latest_ndcg = df["ndcg"].iloc[-1]
+        top_ndcg = ndcg.max()
 
-        current = ndcg.iloc[-1]
-        top_value = ndcg.max()
-
-        delta = current - top_value
+        delta = latest_mrr - top_mrr
 
         st.metric(
-            label=f"{top_chunking_type} NDCG (Max)",
-            value=f"{current:.4f}",
+            label=f"{latest_chunking_type} NDCG (Latest)",
+            value=f"{latest_ndcg:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
             chart_data=ndcg,
             chart_type="line",
         )
 
-    # Recent NDCG performance changes
+    with col3:
+        # This metric clearly represents the latest Recall and how it compares to the historical max
+        recall = df["recall@K"]
+
+        latest_chunking_type = df["chunking.type"].iloc[-1]
+        latest_recall = df["recall@K"].iloc[-1]
+        top_recall = recall.max()
+
+        delta = latest_mrr - top_mrr
+
+        st.metric(
+            label=f"{latest_chunking_type} Recall (Latest)",
+            value=f"{latest_recall:.4f}",
+            delta=f"{delta:+.4f}",
+            border=True,
+            chart_data=recall,
+            chart_type="line",
+        )
+
     with col4:
 
-        # NDCG Change vs Previous Run
-        ndcg = df["ndcg"]
+        # This metric clearly represents the latest hitK and how it compares to the historical max
+        hitK = df["hit@K"]
 
-        current = ndcg.iloc[-1]
-        previous = ndcg.iloc[-2]
+        latest_chunking_type = df["chunking.type"].iloc[-1]
+        latest_hitK = df["hit@K"].iloc[-1]
+        top_hitK = hitK.max()
 
-        delta = current - previous
+        delta = latest_mrr - top_mrr
 
         st.metric(
-            label="Δ NDCG vs Prev",
-            value=f"{current:.4f}",
+            label=f"{latest_chunking_type} HitK (Latest)",
+            value=f"{latest_hitK:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
-            chart_data=ndcg,
-            chart_type="area",
+            chart_data=hitK,
+            chart_type="line",
         )
 
     # --- MODEL EVAL: Default and LLM Based MRR ---
