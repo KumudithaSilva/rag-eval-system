@@ -142,41 +142,41 @@ with st.sidebar:
 if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0] >= 2:
 
     df = st.session_state.dataframe
+
+    # Metrics
+    ndcg = df["ndcg"]
+    mrr = df["mrr"]
+    recall = df["recall@K"]
+
     col1, col2, col3, col4 = st.columns(4)
 
     # --- BASELINE: Retrieval Performance Metrics ---
 
     with col1:
-        # This metric clearly represents the latest MRR and how it compares to the historical max
-        mrr = df["mrr"]
+        # --- Latest NDCG Vs Previous NDCG ---
+        current = ndcg.iloc[-1]
+        previous = ndcg.iloc[-2]
 
-        latest_chunking_type = df["chunking.type"].iloc[-1]
-        latest_mrr = df["mrr"].iloc[-1]
-        top_mrr = df["mrr"].max()
-
-        delta = latest_mrr - top_mrr
+        delta = current - previous
 
         st.metric(
-            label=f"{latest_chunking_type} MRR (Latest)",
-            value=f"{latest_mrr:.4f}",
+            label="Δ NDCG vs Prev",
+            value=f"{current:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
-            chart_data=mrr,
-            chart_type="line",
+            chart_data=ndcg,
+            chart_type="area",
         )
 
     with col2:
-        # This metric clearly represents the latest NDCG and how it compares to the historical max
-        ndcg = df["ndcg"]
-
-        latest_chunking_type = df["chunking.type"].iloc[-1]
+        # --- Latest NDCG Vs MAX NDCG ---
         latest_ndcg = df["ndcg"].iloc[-1]
         top_ndcg = ndcg.max()
 
-        delta = latest_mrr - top_mrr
+        delta = latest_ndcg - top_ndcg
 
         st.metric(
-            label=f"{latest_chunking_type} NDCG (Latest)",
+            label=f"NDCG (Max)",
             value=f"{latest_ndcg:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
@@ -185,41 +185,34 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
         )
 
     with col3:
-        # This metric clearly represents the latest Recall and how it compares to the historical max
-        recall = df["recall@K"]
+        # --- Latest MRR Vs Previous MRR ---
+        current = mrr.iloc[-1]
+        previous = mrr.iloc[-2]
 
-        latest_chunking_type = df["chunking.type"].iloc[-1]
-        latest_recall = df["recall@K"].iloc[-1]
-        top_recall = recall.max()
-
-        delta = latest_mrr - top_mrr
+        delta = current - previous
 
         st.metric(
-            label=f"{latest_chunking_type} Recall (Latest)",
-            value=f"{latest_recall:.4f}",
+            label="Δ MRR vs Prev",
+            value=f"{current:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
-            chart_data=recall,
-            chart_type="line",
+            chart_data=mrr,
+            chart_type="area",
         )
 
     with col4:
+        # --- Latest Recall Vs Previous Recall---
+        current = recall.iloc[-1]
+        previous = recall.iloc[-2]
 
-        # This metric clearly represents the latest hitK and how it compares to the historical max
-        hitK = df["hit@K"]
-
-        latest_chunking_type = df["chunking.type"].iloc[-1]
-        latest_hitK = df["hit@K"].iloc[-1]
-        top_hitK = hitK.max()
-
-        delta = latest_mrr - top_mrr
+        delta = current - previous
 
         st.metric(
-            label=f"{latest_chunking_type} HitK (Latest)",
-            value=f"{latest_hitK:.4f}",
+            label=f"Recall (Latest)",
+            value=f"{current:.4f}",
             delta=f"{delta:+.4f}",
             border=True,
-            chart_data=hitK,
+            chart_data=recall,
             chart_type="line",
         )
 
@@ -231,18 +224,34 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
 
     col1, col2 = st.columns(2)
 
+    # --- Filter data by chunking type ---
+    filtered_llm_df = df[df["chunking.type"] == "LLM Chunking"]
+    filtered_default_df = df[df["chunking.type"] == "Default Chunking"]
+
     with col1:
+        # --- Prepare series data with extra info ---
+        eval_llm_mrr = [
+            {
+                "value": row["mrr"],
+                "step": idx,
+                "llm_model": row["chunking.config.llm_model"],
+                "emb_model_name": row["embedding.config.emb_model_name"],
+            }
+            for idx, row in filtered_llm_df.iterrows()
+        ]
 
-        filtered_llm_df = df[df["chunking.type"] == "LLM Chunking"]
-        llm_mrr_series = filtered_llm_df["mrr"]
+        eval_default_mrr = [
+            {
+                "value": row["mrr"],
+                "step": idx,
+                "chunk_size": row["chunking.config.chunk_size"],
+                "chunk_overlap": row["chunking.config.chunk_overlap"],
+                "emb_model_name": row["embedding.config.emb_model_name"],
+            }
+            for idx, row in filtered_default_df.iterrows()
+        ]
 
-        filtered_default_df = df[df["chunking.type"] == "Default Chunking"]
-        default_mrr_series = filtered_default_df["mrr"]
-
-        # Prepare data for line chart
-        steps = df.index.tolist()
-        eval_llm_mrr = llm_mrr_series.tolist()
-        eval_default_mrr = default_mrr_series.tolist()
+        steps = list(range(1, len(df)))
 
         option = {
             "title": {
@@ -269,15 +278,26 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
                 "trigger": "axis",
                 "formatter": JsCode(
                     """
-                function(params){
-                    // params is an array of series info at this axis point
-                    var result = params[0].axisValue + '<br/>';
-                    params.forEach(function(item){
-                        result += item.marker + item.seriesName + ': ' + item.data + '<br/>';
-                    });
-                    return result;
-                }
-                """
+                    function(params){
+                        var result = 'Step: ' + params[0].axisValue + '<br/>';
+                        params.forEach(function(item){
+                            // series name + value on first line
+                            result += item.marker + ' ' + item.seriesName + ': ' + item.data.value + '<br/>';
+                            if (item.seriesName === 'LLM Based') {
+                                result += '- LLM Model: ' + item.data.llm_model + '<br/>';
+                                result += '- EMB Model: ' + item.data.emb_model_name + '<br/>';
+                            } else if (item.seriesName === 'Default') {
+                                result += '- Chunk Size: ' + item.data.chunk_size + '<br/>';
+                                result += '- Chunk Overlap: ' + item.data.chunk_overlap + '<br/>';
+                                result += '- EMB Model: ' + item.data.emb_model_name + '<br/>';
+                            }
+                            
+                            // add spacing between series
+                            result += '<br/>';
+                        });
+                        return result;
+                    }
+                    """
                 ),
             },
             "legend": {"data": ["LLM Based", "Default"], "bottom": 10},
@@ -308,17 +328,29 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
         )
 
     with col2:
+        # --- Prepare series data with extra info ---
+        eval_llm_ndcg = [
+            {
+                "value": row["ndcg"],
+                "step": idx,
+                "llm_model": row["chunking.config.llm_model"],
+                "emb_model_name": row["embedding.config.emb_model_name"],
+            }
+            for idx, row in filtered_llm_df.iterrows()
+        ]
 
-        filtered_llm_df = df[df["chunking.type"] == "LLM Chunking"]
-        llm_mrr_series = filtered_llm_df["ndcg"]
+        eval_default_ndcg = [
+            {
+                "value": row["ndcg"],
+                "step": idx,
+                "chunk_size": row["chunking.config.chunk_size"],
+                "chunk_overlap": row["chunking.config.chunk_overlap"],
+                "emb_model_name": row["embedding.config.emb_model_name"],
+            }
+            for idx, row in filtered_default_df.iterrows()
+        ]
 
-        filtered_default_df = df[df["chunking.type"] == "Default Chunking"]
-        default_mrr_series = filtered_default_df["ndcg"]
-
-        # Prepare data for line chart
-        steps = df.index.tolist()
-        eval_llm_ndcg = llm_mrr_series.tolist()
-        eval_default_ndcg = default_mrr_series.tolist()
+        steps = list(range(1, len(df)))
 
         option = {
             "title": {
@@ -345,15 +377,26 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
                 "trigger": "axis",
                 "formatter": JsCode(
                     """
-                function(params){
-                    // params is an array of series info at this axis point
-                    var result = params[0].axisValue + '<br/>';
-                    params.forEach(function(item){
-                        result += item.marker + item.seriesName + ': ' + item.data + '<br/>';
-                    });
-                    return result;
-                }
-                """
+                    function(params){
+                        var result = 'Step: ' + params[0].axisValue + '<br/>';
+                        params.forEach(function(item){
+                            // series name + value on first line
+                            result += item.marker + ' ' + item.seriesName + ': ' + item.data.value + '<br/>';
+                            if (item.seriesName === 'LLM Based') {
+                                result += '- LLM Model: ' + item.data.llm_model + '<br/>';
+                                result += '- EMB Model: ' + item.data.emb_model_name + '<br/>';
+                            } else if (item.seriesName === 'Default') {
+                                result += '- Chunk Size: ' + item.data.chunk_size + '<br/>';
+                                result += '- Chunk Overlap: ' + item.data.chunk_overlap + '<br/>';
+                                result += '- EMB Model: ' + item.data.emb_model_name + '<br/>';
+                            }
+                            
+                            // add spacing between series
+                            result += '<br/>';
+                        });
+                        return result;
+                    }
+                    """
                 ),
             },
             "legend": {"data": ["LLM Based", "Default"], "bottom": 10},
