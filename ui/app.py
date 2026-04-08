@@ -181,7 +181,7 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
             delta=f"{delta:+.4f}",
             border=True,
             chart_data=ndcg,
-            chart_type="line",
+            chart_type="area",
         )
 
     with col3:
@@ -213,7 +213,7 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
             delta=f"{delta:+.4f}",
             border=True,
             chart_data=recall,
-            chart_type="line",
+            chart_type="area",
         )
 
     # --- MODEL EVAL: Default and LLM Based MRR ---
@@ -227,6 +227,8 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
     # --- Filter data by chunking type ---
     filtered_llm_df = df[df["chunking.type"] == "LLM Chunking"]
     filtered_default_df = df[df["chunking.type"] == "Default Chunking"]
+
+    steps = list(range(1, max(len(filtered_llm_df), len(filtered_default_df)) + 1))
 
     with col1:
         # --- Prepare series data with extra info ---
@@ -250,8 +252,6 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
             }
             for idx, row in filtered_default_df.iterrows()
         ]
-
-        steps = list(range(1, len(df)))
 
         option = {
             "title": {
@@ -349,8 +349,6 @@ if st.session_state.dataframe is not None and st.session_state.dataframe.shape[0
             }
             for idx, row in filtered_default_df.iterrows()
         ]
-
-        steps = list(range(1, len(df)))
 
         option = {
             "title": {
