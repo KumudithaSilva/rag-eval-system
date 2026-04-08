@@ -71,8 +71,8 @@ class RagEvalContainer:
         Returns:
             RAGPipeline: RAG pipeline instance.
         """
-        documents = self.app_container.doc_service(path)[:5]
-        rag_tests = self.app_container.rag_test_service(testset_path)[:5]
+        documents = self.app_container.doc_service(path)[:10]
+        rag_tests = self.app_container.rag_test_service(testset_path)[:10]
         config_details = document_config
 
         chunking = self.chunking_factory.create(document_config["chunking"], documents)
