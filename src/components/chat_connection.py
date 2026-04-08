@@ -32,6 +32,6 @@ class ChatConnectionService(IChatConnection):
             IAIClient: Interface for AI client operations.
         """
         if self.client is None:
-            # self.client = OpenRouterAIClientWrapper(self.key_provider, model=model)
-            self.client = OllamaClientWrapper(model=model)
+            self.client = OpenRouterAIClientWrapper(self.key_provider, model=model)
+            # self.client = OllamaClientWrapper(model=model)
         return self.client
