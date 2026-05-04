@@ -102,7 +102,7 @@ This ensures the dashboard remains **interpretable, stable, and decision-focused
 ## 📸 UI Preview
 
 
-<img width="900" height="700" alt="image" src="https://github.com/user-attachments/assets/41d41c25-e15f-42d1-9a29-d62287d5cc79"/>
+<img width="900" height="500" alt="image" src="https://github.com/user-attachments/assets/41d41c25-e15f-42d1-9a29-d62287d5cc79"/>
 
 
 ## 🏗️ Architecture
